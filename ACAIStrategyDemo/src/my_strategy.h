@@ -3,6 +3,10 @@
 
 #include "strategy_interface.h"
 
+extern "C"{
+	__declspec(dllexport) int ffunc(int a, int b);
+}
+
 /// \brief ²ßÂÔÊµÏÖDemo
 class MyStrategy : public CStrategy
 {
