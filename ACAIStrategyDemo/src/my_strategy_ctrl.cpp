@@ -1,5 +1,9 @@
 #include "my_strategy.h"
 #include "string.h"
+#include <Python.h>
+#include <iostream>
+#include <string>
+using namespace std;
 
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
@@ -33,7 +37,13 @@ void MyStrategy::timeSlice40()
     // TODO : 此处添加用户代码执行40ms周期任务
 	ACAI::EventLog outputData;
 	memset(&outputData, 0, sizeof(outputData));
-	if( mACMslWarning.mslCnt > 0 )
+	int a = ffunc(3,4);
+	if(a == 7)
+	{
+		strcpy(outputData.EventDes, "Python link success!");
+	}
+	logEvent(outputData);
+	/*if( mACMslWarning.mslCnt > 0 )
 	{// 置尾逃逸
 		DoTacHeadEvade();
 		// 日志显示
@@ -79,7 +89,7 @@ void MyStrategy::timeSlice40()
 			logEvent(outputData);
 		}
 		DoTacAltClimb();
-	}
+	}*/
 }
 
 // 武器发射
@@ -161,4 +171,60 @@ void MyStrategy::DoTacAltClimb()
     outputData.desireSpeed = 200;///< 期望航路速度(m/s)
     outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
+}
+
+int ffunc(int a, int b)
+{
+	Py_Initialize();
+	if(!Py_IsInitialized())
+	{
+		cout << "[Error] Init error" << endl;
+		return -1;
+	}
+
+	PyRun_SimpleString("import sys");
+	PyRun_SimpleString("sys.path.append('./')");
+	PyObject *pName, *pModule, *pFunc, *pArgs, *pRet;
+
+	pName = PyUnicode_FromString("func");
+	pModule = PyImport_Import(pName);
+
+	if(!pModule)
+	{
+		cout << "[Error] Import module error" << endl;;
+		return -1;
+	}
+
+	cout << "[INFO] Import module success" << endl;
+
+	pFunc = PyObject_GetAttrString(pModule, "func");
+	
+	if(!pFunc)
+	{
+		cout << "[Error] Import function error" << endl;
+		return -1;
+	}
+
+	cout << "[INFO] Get function success" << endl;
+
+	pArgs = PyTuple_New(2);
+
+	PyTuple_SetItem(pArgs, 0, Py_BuildValue("i", a));
+	PyTuple_SetItem(pArgs, 1, Py_BuildValue("i", b));
+
+	pRet = PyObject_CallObject(pFunc, pArgs);
+	int res = 0;
+	if(pRet)
+	{
+		PyArg_Parse(pRet, "i", &res);
+	}
+
+	Py_DecRef(pName);
+	Py_DecRef(pModule);
+	Py_DecRef(pFunc);
+	Py_DecRef(pArgs);
+	Py_DecRef(pRet);
+	Py_Finalize();
+
+	return res;
 }

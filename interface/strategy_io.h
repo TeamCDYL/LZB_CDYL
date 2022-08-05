@@ -166,7 +166,7 @@ struct ACFCCStatus
         double Rmax;        ///< 攻击包线Rmax(m)（假设导弹发射后目标不机动，导弹的最大攻击距离）
         double Rtr;         ///< 攻击包线Rtr(m)（假设导弹发射后目标水平置尾，导弹的最大攻击距离）
         bool APoleValid;    ///< A极有效性（A极表示导弹发射预计能够截获目标）
-        bool FPoleValid;    ///< F极有效性（A极表示导弹发射预计能够命中目标）
+        bool FPoleValid;    ///< F极有效性（F极表示导弹发射预计能够命中目标）
         double APoleTime;   ///< A极时间（预计截获目标的时间）
         double FPoleTime;   ///< F极时间（预计命中目标的时间）
         double APoleRange;  ///< A极距离（预计截获目标时刻的载机和目标距离）
