@@ -1,6 +1,7 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
 
+#include <Python.h>
 #include "strategy_interface.h"
 
 /// \brief 策略实现Demo
@@ -146,9 +147,11 @@ private:
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
 
 private:
+	//战术动作库
 	// 定向突防
 	void DoTacPointAtk();
 	// 置尾逃逸
+	unsigned long mslWarningStartTime;
 	void DoTacHeadEvade();
 	// 偏置制导
 	void DoTacHeadGuide();
@@ -156,7 +159,28 @@ private:
 	void DoTacAltClimb();
 	// 武器发射
 	unsigned long m_lastWpnShootTimeCounter; //上次发射时间
-	void DoTacWpnShoot();
+	void DoTacWpnShoot(int);
+
+	//新增战术
+	void DoTrack(int);//追击
+	void DoTacCir();//回环
+	void DoTacStaHov();//蛇形机动
+
+	//规则
+	enum RuleWarn {
+		AltWarn,
+		LonWarn,
+		LatWarn,
+		NoWarn
+	};
+	RuleWarn Rule();
+	
+	// 动作库
+	void DoTacToTar(int);//转向目标
+	void DoTacNoseDive();//下落俯冲飞行
+	void DoTurnLeft();//左转向
+	void DoTurnRight();//右转向
+	void DoTurnFor();//向前飞行
 };
 
 #endif // MY_STRATEGY_H
