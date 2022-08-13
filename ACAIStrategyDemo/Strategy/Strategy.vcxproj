@@ -22,17 +22,17 @@
     <ClInclude Include="..\..\interface\strategy_global.h" />
     <ClInclude Include="..\..\interface\strategy_interface.h" />
     <ClInclude Include="..\..\interface\strategy_io.h" />
+    <ClInclude Include="..\src\file_watcher.h" />
     <ClInclude Include="..\src\my_strategy.h" />
-    <ClInclude Include="..\src\readFile.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\interface\strategy_interface.cpp" />
+    <ClCompile Include="..\src\file_watcher.cpp" />
     <ClCompile Include="..\src\my_strategy.cpp" />
     <ClCompile Include="..\src\my_strategy_ctrl.cpp" />
     <ClCompile Include="..\src\my_strategy_io.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../interface;../src;C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ClCompile Include="..\src\readFile.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FD108313-CC9B-4377-A202-978B65A796B8}</ProjectGuid>

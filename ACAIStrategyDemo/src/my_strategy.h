@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include "strategy_interface.h"
+#include "file_watcher.h"
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -155,28 +156,33 @@ private:
 	void DoTacHeadEvade();
 	// 偏置制导
 	void DoTacHeadGuide();
-	// 爬升扩包
+	// 爬升提速
 	void DoTacAltClimb();
 	// 武器发射
 	unsigned long m_lastWpnShootTimeCounter; //上次发射时间
-	void DoTacWpnShoot(int);
+	void DoTacWpnShoot(int target);
 
 	//新增战术
-	void DoTrack(int);//追击
+	void DoTrack(int target);//追击
 	void DoTacCir();//回环
 	void DoTacStaHov();//蛇形机动
 
+	void SwitchGuideFlight();
+
+	//动作读取
+	void readAction();
+
 	//规则
 	enum RuleWarn {
-		AltWarn,
-		LonWarn,
-		LatWarn,
-		NoWarn
+		NoWarn = 0,
+		AltWarn = 1,
+		LonWarn = 2,
+		LatWarn = 4
 	};
-	RuleWarn Rule();
+	int Rule();
 	
 	// 动作库
-	void DoTacToTar(int);//转向目标
+	void DoTacToTar(int target);//转向目标
 	void DoTacNoseDive();//下落俯冲飞行
 	void DoTurnLeft();//左转向
 	void DoTurnRight();//右转向

@@ -4,6 +4,6 @@
     <LocalDebuggerCommand>$(SolutionDir)dist\ACAI_CMD.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)dist</LocalDebuggerWorkingDirectory>
-    <ShowAllFiles>false</ShowAllFiles>
+    <ShowAllFiles>true</ShowAllFiles>
   </PropertyGroup>
 </Project>
