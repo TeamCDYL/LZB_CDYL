@@ -3,6 +3,7 @@
 
 #include <Python.h>
 #include "strategy_interface.h"
+#include "file_watcher.h"
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -165,6 +166,11 @@ private:
 	void DoTrack(int target);//追击
 	void DoTacCir();//回环
 	void DoTacStaHov();//蛇形机动
+
+	void SwitchGuideFlight();
+
+	//动作读取
+	void readAction();
 
 	//规则
 	enum RuleWarn {

@@ -172,6 +172,47 @@ void MyStrategy::timeSlice40()
 }
 
 //--------------------------------------
+//读取动作
+struct Action {
+	int fin, sin; // 一级索引，0：飞行，1：攻击；二级索引：具体动作
+};
+void MyStrategy::readAction() {
+	struct Action act = {-1, -1};
+	if (watch(L".", "action.csv", deal, &act)) {
+		if (act.fin == 0) { // TODO:根据二级索引执行动作
+			switch (act.sin) {
+			case 1:
+			default:
+				DoTacHeadEvade();
+			}
+		} else {
+			if (act.sin == 1) {
+				DoTacWpnShoot(0);
+			} else {
+				SwitchGuideFlight();
+			}
+		}
+	} else { // 监听期间文件未发生改变
+		DoTacHeadEvade();
+		return;
+	}
+	// TODO:收到action后的反馈
+
+	return;
+}
+
+void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy类里
+	FILE* fp = fopen(filename, "r");
+	int fin, sin; // 一级索引，二级索引
+	fscanf(fp, "%d %d", &fin, &sin);
+	fclose(fp);
+	struct Action* act = (struct Action*) lParam;
+	act->fin = fin;
+	act->sin = sin;
+	return;
+}
+
+//--------------------------------------
 //规则
 int MyStrategy::Rule()
 {
@@ -266,7 +307,13 @@ void MyStrategy::DoTurnFor()
 
 //--------------------------------------
 //战术动作库
-// 追击
+//切换制导机
+void MyStrategy::SwitchGuideFlight() {
+	// TODO:切换制导机
+	return;
+}
+
+//追击
 void MyStrategy::DoTrack(int target) {
 	DoTacToTar(target);
 }
