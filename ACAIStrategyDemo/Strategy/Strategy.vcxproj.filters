@@ -21,7 +21,7 @@
     <ClInclude Include="..\..\interface\strategy_io.h">
       <Filter>interface</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\readFile.h">
+    <ClInclude Include="file_watcher.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClCompile Include="..\..\interface\strategy_interface.cpp">
       <Filter>interface</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\readFile.cpp">
+    <ClCompile Include="file_watcher.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
