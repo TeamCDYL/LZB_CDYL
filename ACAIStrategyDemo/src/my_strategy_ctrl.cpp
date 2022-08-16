@@ -176,6 +176,18 @@ void MyStrategy::timeSlice40()
 struct Action {
 	int fin, sin; // 一级索引，0：飞行，1：攻击；二级索引：具体动作
 };
+
+void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy类里
+	FILE* fp = fopen(filename, "r");
+	int fin, sin; // 一级索引，二级索引
+	fscanf(fp, "%d %d", &fin, &sin);
+	fclose(fp);
+	struct Action* act = (struct Action*) lParam;
+	act->fin = fin;
+	act->sin = sin;
+	return;
+}
+
 void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (watch(L".", "action.csv", deal, &act)) {
@@ -197,19 +209,55 @@ void MyStrategy::readAction() {
 		return;
 	}
 	// TODO:收到action后的反馈
-
+	PrintStatus();
 	return;
 }
 
-void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy类里
-	FILE* fp = fopen(filename, "r");
-	int fin, sin; // 一级索引，二级索引
-	fscanf(fp, "%d %d", &fin, &sin);
+#define POW2(x) (x) * (x)
+
+double getTdAngle(const double vect1[3], const double vect2[3]) {
+	double vectDot = vect1[0] * vect2[0] + vect[1] * vect2[1] + vect1[2] * vect2[2];
+	double vectMod1 = sqrt( POW2(vect1[0]) + POW2(vect1[1]) + POW2(vect1[2]) );
+	double vectMod2 = sqrt( POW2(vect2[0]) + POW2(vect2[1]) + POW2(vect2[2]) );
+	double cosValue = vectDot / (vectMod1 * vectMod2);
+	double rad = acos(cosValue);
+	return rad;
+}
+
+void MyStrategy::PrintStatus() {
+	static const double dis2Lons = mPKConfig.LeftDownLon + (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 2;
+	static const double dis2Lats = mPKConfig.LeftDownLat + (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 2;
+	FILE* fp = fopen("state.csv", "r");
+	if (fp == NULL) {
+		fclose(fp);
+		fp = fopen("state.csv", "w");
+	} else {
+		fclose(fp);
+		fp = fopen("state.csv", "a");
+	}
+	fprintf(fp, "[%d] %f %f %f %f %f %f %f %f %f %f %d %d %d\n",
+		mACFlightStatus.timeCounter,						// [时标]
+		mACRdrTarget.tgtInfos[0].slantRange,				// 目标距离
+		mACFlightStatus.alt - mACRdrTarget.tgtInfos[0].alt, // 目标高度差
+		mACRdrTarget.tgtInfos[0].azGeo,						// 目标 地理系 方位角
+		mACRdrTarget.tgtInfos[0].sbsSpeed,					// 目标速度(m/s)
+		mCOFlightStatus.memFlightStatus[0].groundSpeed,		// 友机速度(m/s)
+		sqrt( POW2(mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt) +
+		POW2((mACFlightStatus.lon - mCOFlightStatus.memFlightStatus[0].lon) * dis2Lons) +
+		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ),
+															// 友机距离
+		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt,
+															// 友机高度差
+		getTdAngle(mACFlightStatus.velNWU, mCOFlightStatus.memFlightStatus[0].velNWU),
+															// 友机速度矢量夹角
+		mACFlightStatus.groundSpeed,						// 本机速度
+		getTdAngle(mACFlightStatus.velNWU, mACRdrTarget.tgtInfos[0].velNWU),
+															// 敌机速度矢量夹角
+		mACMslWarning.mslCnt > 0,							// 是否被导弹锁定
+		mACMSLInGuide.mslCnt > 0,							// 是否在制导
+		mACFlightStatus.remainWpnNum						// 剩余武器量
+		);
 	fclose(fp);
-	struct Action* act = (struct Action*) lParam;
-	act->fin = fin;
-	act->sin = sin;
-	return;
 }
 
 //--------------------------------------

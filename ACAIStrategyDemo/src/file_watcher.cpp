@@ -21,6 +21,7 @@ bool watch(LPCTSTR dir, const char* filename, LPFileDeal lpFileDeal, LPVOID lPar
 					WideCharToMultiByte(CP_ACP, 0, p->FileName, -1, multiBytesFilename, size, NULL, NULL);
 					if (strcmp(multiBytesFilename, filename) == 0) { // 目标文件被修改
 						lpFileDeal(filename, lParam);
+						CloseHandle(hDir);
 						return true;
 					}
 
@@ -32,8 +33,9 @@ bool watch(LPCTSTR dir, const char* filename, LPFileDeal lpFileDeal, LPVOID lPar
 					}
 				}
 		} else {
-			return false;
+			break;
 		}
 	}
+	CloseHandle(hDir);
 	return false;
 }

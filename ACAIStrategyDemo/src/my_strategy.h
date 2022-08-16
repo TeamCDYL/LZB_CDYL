@@ -4,6 +4,7 @@
 #include <Python.h>
 #include "strategy_interface.h"
 #include "file_watcher.h"
+#include <math.h>
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -148,7 +149,7 @@ private:
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
 
 private:
-	//战术动作库
+	// 战术动作库
 	// 定向突防
 	void DoTacPointAtk();
 	// 置尾逃逸
@@ -162,17 +163,20 @@ private:
 	unsigned long m_lastWpnShootTimeCounter; //上次发射时间
 	void DoTacWpnShoot(int target);
 
-	//新增战术
+	// 新增战术
 	void DoTrack(int target);//追击
 	void DoTacCir();//回环
 	void DoTacStaHov();//蛇形机动
 
 	void SwitchGuideFlight();
 
-	//动作读取
+	// 动作读取
 	void readAction();
 
-	//规则
+	// 输出状态
+	void PrintStatus();
+
+	// 规则
 	enum RuleWarn {
 		NoWarn = 0,
 		AltWarn = 1,
