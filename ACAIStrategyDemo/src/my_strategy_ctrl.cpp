@@ -190,33 +190,41 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 
 void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
-	if (watch(L".", "action.csv", deal, &act)) {
-		if (act.fin == 0) { // TODO:根据二级索引执行动作
-			switch (act.sin) {
-			case 1:
-			default:
-				DoTacHeadEvade();
-			}
-		} else {
-			if (act.sin == 1) {
-				DoTacWpnShoot(0);
+	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+		if (watch(L".", "action1.csv", deal, &act)) {
+			if (act.fin == 0) { // TODO:根据二级索引执行动作
+				switch (act.sin) {
+				case 1:
+				default:
+					DoTacHeadEvade();
+				}
 			} else {
-				SwitchGuideFlight();
+				if (act.sin == 1) {
+					DoTacWpnShoot(0);
+				} else {
+					SwitchGuideFlight();
+				}
 			}
+		} else { // 监听期间文件未发生改变
+			DoTacHeadEvade();
+			return;
 		}
-	} else { // 监听期间文件未发生改变
-		DoTacHeadEvade();
-		return;
+		// TODO:收到action后的反馈
+		PrintStatus("state1.csv");
+	} else {
+		if (watch(L".", "action2.csv", deal, &act)) {
+
+		}
+		PrintStatus("state2.csv");
 	}
-	// TODO:收到action后的反馈
-	PrintStatus();
 	return;
+	
 }
 
 #define POW2(x) (x) * (x)
 
 double getTdAngle(const double vect1[3], const double vect2[3]) {
-	double vectDot = vect1[0] * vect2[0] + vect[1] * vect2[1] + vect1[2] * vect2[2];
+	double vectDot = vect1[0] * vect2[0] + vect1[1] * vect2[1] + vect1[2] * vect2[2];
 	double vectMod1 = sqrt( POW2(vect1[0]) + POW2(vect1[1]) + POW2(vect1[2]) );
 	double vectMod2 = sqrt( POW2(vect2[0]) + POW2(vect2[1]) + POW2(vect2[2]) );
 	double cosValue = vectDot / (vectMod1 * vectMod2);
@@ -224,16 +232,16 @@ double getTdAngle(const double vect1[3], const double vect2[3]) {
 	return rad;
 }
 
-void MyStrategy::PrintStatus() {
-	static const double dis2Lons = mPKConfig.LeftDownLon + (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 2;
-	static const double dis2Lats = mPKConfig.LeftDownLat + (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 2;
-	FILE* fp = fopen("state.csv", "r");
+void MyStrategy::PrintStatus(const char * filename) {
+	static const double dis2Lons = 160000 / (mPKConfig.RightUpLon - mPKConfig.LeftDownLon);
+	static const double dis2Lats = 80000 / (mPKConfig.RightUpLat - mPKConfig.LeftDownLat);
+	FILE* fp = fopen(filename, "r");
 	if (fp == NULL) {
 		fclose(fp);
-		fp = fopen("state.csv", "w");
+		fp = fopen(filename, "w");
 	} else {
 		fclose(fp);
-		fp = fopen("state.csv", "a");
+		fp = fopen(filename, "a");
 	}
 	fprintf(fp, "[%d] %f %f %f %f %f %f %f %f %f %f %d %d %d\n",
 		mACFlightStatus.timeCounter,						// [时标]

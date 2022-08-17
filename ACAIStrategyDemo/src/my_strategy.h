@@ -174,7 +174,7 @@ private:
 	void readAction();
 
 	// Êä³ö×´Ì¬
-	void PrintStatus();
+	void PrintStatus(const char * filename);
 
 	// ¹æÔò
 	enum RuleWarn {
