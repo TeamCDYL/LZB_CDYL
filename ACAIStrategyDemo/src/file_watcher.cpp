@@ -32,8 +32,6 @@ bool watch(LPCTSTR dir, const char* filename, LPFileDeal lpFileDeal, LPVOID lPar
 						p = NULL;
 					}
 				}
-		} else {
-			break;
 		}
 	}
 	CloseHandle(hDir);

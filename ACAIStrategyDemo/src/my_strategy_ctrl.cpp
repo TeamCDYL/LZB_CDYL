@@ -119,56 +119,57 @@ void MyStrategy::timeSlice40()
 	}
 
 	//单机战术
+	int mslWarningStartTime;
 //	if (mCOFlightStatus.flightMemCnt == 0) {
-		if (mACMslWarning.mslCnt > 0) {
-			if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) { // 导弹警告开始3秒后躲避
-				DoTacHeadEvade();
-				strcpy(outputData.EventDes, "置尾逃逸");
-				logEvent(outputData);
-			}
-		} else { // 在没有导弹警告时刷新导弹警告计时器
-			mslWarningStartTime = mACFlightStatus.timeCounter;
-		}
-		// 无法攻击，无需躲避时全速突进
-		if (mACRdrTarget.tgtCnt == 0 &&	mACMslWarning.mslCnt ==0) {
-			//DoTacPointAtk();
-			DoTacAltClimb();
-			strcpy(outputData.EventDes, "定向突防");
+	if (mACMslWarning.mslCnt > 0) {
+		if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) { // 导弹警告开始3秒后躲避
+			DoTacHeadEvade();
+			strcpy(outputData.EventDes, "置尾逃逸");
 			logEvent(outputData);
 		}
-		if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt == 0) {
-			// 判断追击还是突破
-			// 存在敌人时
-			if ((mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid) &&
-				((int) mACFlightStatus.timeCounter - (int) m_lastWpnShootTimeCounter > 5000)) {
-					m_lastWpnShootTimeCounter = mACFlightStatus.timeCounter;
-					DoTacWpnShoot(0);
-					strcpy(outputData.EventDes, "武器发射");
-					logEvent(outputData);
-			} else {
-				DoTacToTar(0);
-				strcpy(outputData.EventDes, "追击");
+	} else { // 在没有导弹警告时刷新导弹警告计时器
+		mslWarningStartTime = mACFlightStatus.timeCounter;
+	}
+	// 无法攻击，无需躲避时全速突进
+	if (mACRdrTarget.tgtCnt == 0 &&	mACMslWarning.mslCnt ==0) {
+		//DoTacPointAtk();
+		DoTacAltClimbP30();
+		strcpy(outputData.EventDes, "加30度上升");
+		logEvent(outputData);
+	}
+	if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt == 0) {
+		// 判断追击还是突破
+		// 存在敌人时
+		if ((mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid) &&
+			((int) mACFlightStatus.timeCounter - (int) m_lastWpnShootTimeCounter > 5000)) {
+				m_lastWpnShootTimeCounter = mACFlightStatus.timeCounter;
+				DoTacWpnShoot();
+				strcpy(outputData.EventDes, "武器发射");
 				logEvent(outputData);
-			}
-			// 有两个敌人时
-			if (mACRdrTarget.tgtCnt == 2) {
-				if (mACFCCStatus.envInfos[1].FPoleValid == true &&
-					(int) mACFlightStatus.timeCounter - (int) m_lastWpnShootTimeCounter > 5000) {
-					m_lastWpnShootTimeCounter = mACFlightStatus.timeCounter;
-					DoTacWpnShoot(1);
-					strcpy(outputData.EventDes, "武器发射");
-					logEvent(outputData);
-				}
-			}
-		}
-		if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt > 0) {
-			DoTacHeadGuide();
-			strcpy(outputData.EventDes, "偏置制导");
+		} else {
+			DoTacToTar();
+			strcpy(outputData.EventDes, "追击");
 			logEvent(outputData);
 		}
-//	} else {
+		// 有两个敌人时
+		if (mACRdrTarget.tgtCnt == 2) {
+			if (mACFCCStatus.envInfos[1].FPoleValid == true &&
+				(int) mACFlightStatus.timeCounter - (int) m_lastWpnShootTimeCounter > 5000) {
+					m_lastWpnShootTimeCounter = mACFlightStatus.timeCounter;
+					DoTacWpnShoot();
+					strcpy(outputData.EventDes, "武器发射");
+					logEvent(outputData);
+			}
+		}
+	}
+	if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt > 0) {
+		DoTurnRight30();
+		strcpy(outputData.EventDes, "右转偏置30度");
+		logEvent(outputData);
+		DoTacWpnShoot();
+		strcpy(outputData.EventDes,"武器发射");
 
-//	}
+	}
 }
 
 //--------------------------------------
@@ -200,7 +201,7 @@ void MyStrategy::readAction() {
 				}
 			} else {
 				if (act.sin == 1) {
-					DoTacWpnShoot(0);
+					DoTacWpnShoot();
 				} else {
 					SwitchGuideFlight();
 				}
@@ -287,9 +288,59 @@ int MyStrategy::Rule()
 
 //--------------------------------------
 //基本动作集
-
-//转向目标
-void MyStrategy::DoTacToTar(int target)
+void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
+{
+	if (fin == 0) {
+		switch(sin) {
+		case 1: DoTacPointAtk();break;
+		case 2: DoTacToTar();break;
+		case 3:	DoTacAltClimbP30();break;
+		case 4: DoTacAltClimbP60();break;
+		case 5: DoTacNoseDiveM30();break;
+		case 6:	DoTacNoseDiveM60();break;
+		case 7: DoTacStaHov();break;
+		case 8: DoTurnLeft30();break;
+		case 9: DoTurnLeft60();break;
+		case 10: DoTurnRight30();break;
+		case 11: DoTacHeadEvade();break;
+		case 12: DoTurnEvad30();break;
+		case 13: DoTurnEvad60();break;
+		default: DoTacHeadEvade();break;
+		}
+	} else {
+		switch(sin) {
+		case 1:DoTacWpnShoot();break;
+		case 2:SwitchGuideFlight();break;
+		default:break;
+		}
+	}
+	
+}
+//向敌方防线飞行
+void MyStrategy::DoTacPointAtk()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.navCtrlCmd	= true;        ///< 航路飞行指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
+	{
+		outputData.desireNavLon	= mPKConfig.RedMissionLon;    ///< 期望航路经度(rad)
+		outputData.desireNavLat	= mPKConfig.RedMissionLat;    ///< 期望航路纬度(rad)
+	}
+	else
+	{
+		outputData.desireNavLon	= mPKConfig.BlueMissionLon;    ///< 期望航路经度(rad)
+		outputData.desireNavLat	= mPKConfig.BlueMissionLat;    ///< 期望航路纬度(rad)
+	}
+	outputData.desireNavAlt = 2000;    ///< 期望航路高度(m)
+	outputData.desireSpeed	= 1000;     ///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//向一架敌机飞行
+void MyStrategy::DoTacToTar()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
@@ -297,14 +348,44 @@ void MyStrategy::DoTacToTar(int target)
 	outputData.altCtrlCmd = true;        ///< 高度保持指令
 	outputData.headCtrlCmd = true;       ///< 航向保持指令
 	outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.desireAlt = mACRdrTarget.tgtInfos[target].alt + 1500;       ///< 期望高度(m)
+	outputData.desireAlt = 2000;       ///< 期望高度(m)
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-	outputData.desireHead =mACRdrTarget.tgtInfos[target].azGeo;
+	outputData.desireHead =mACRdrTarget.tgtInfos[0].azGeo;
+	sendFlyControlCmd(outputData);
+
+}
+//+30度加速爬升
+void MyStrategy::DoTacAltClimbP30()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 4000;       ///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo+PI/6.0;///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
 }
-
-//下落俯冲飞行
-void MyStrategy::DoTacNoseDive()
+//+60度加速爬升
+void MyStrategy::DoTacAltClimbP60()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 4000;       ///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo+PI/3.0;///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//-30度下潜
+void MyStrategy::DoTacNoseDiveM30()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
@@ -313,105 +394,26 @@ void MyStrategy::DoTacNoseDive()
 	outputData.headCtrlCmd = true;       ///< 航向保持指令
 	outputData.speedCtrlCmd = true;      ///< 速度保持指令
 	outputData.desireAlt = mPKConfig.MinFlyHeight+100;       ///< 期望高度(m)
-	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;///< 期望航路航向(rad)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo-PI/6.0;///< 期望航路航向(rad)
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
 }
-
-//左转向
-void MyStrategy::DoTurnLeft()
+//-60度下潜
+void MyStrategy::DoTacNoseDiveM60()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
 	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
 	outputData.headCtrlCmd = true;       ///< 航向保持指令
 	outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.desireHead = mACFlightStatus.heading-PI/2.0;		///< 期望航路航向(rad)
+	outputData.desireAlt = mPKConfig.MinFlyHeight+100;       ///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo-PI/3.0;///< 期望航路航向(rad)
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
 }
-
-//右转向
-void MyStrategy::DoTurnRight()
-{
-	ACAI::FlyControlCmd outputData;
-	memset(&outputData, 0, sizeof(outputData));
-	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-	outputData.headCtrlCmd = true;       ///< 航向保持指令
-	outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.desireHead = mACFlightStatus.heading+PI/2.0;		///< 期望航路航向(rad)
-	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
-	sendFlyControlCmd(outputData);
-}
-
-//向前飞行
-void MyStrategy::DoTurnFor()
-{
-	ACAI::FlyControlCmd outputData;
-	memset(&outputData, 0, sizeof(outputData));
-	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-	outputData.headCtrlCmd = true;       ///< 航向保持指令
-	outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;		///< 期望航路航向(rad)
-	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
-	sendFlyControlCmd(outputData);
-}
-
-//--------------------------------------
-//战术动作库
-//切换制导机
-void MyStrategy::SwitchGuideFlight() {
-	// TODO:切换制导机
-	return;
-}
-
-//追击
-void MyStrategy::DoTrack(int target) {
-	DoTacToTar(target);
-}
-
-//回环
-void MyStrategy::DoTacCir() {
-	unsigned long nowCnt = mACFlightStatus.timeCounter;
-	unsigned long cnt = nowCnt;
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnLeft();			//向左飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnFor();			//向前飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnLeft();			//向左飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnFor();			//向前飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnLeft();			//向左飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnFor();			//向前飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnLeft();			//向左飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
-		MyStrategy::DoTurnFor();			//向前飞行
-		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
-	}
-}
-
 //蛇形机动
 void MyStrategy::DoTacStaHov()
 {
@@ -450,57 +452,227 @@ void MyStrategy::DoTacStaHov()
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
 }
-
-// 武器发射
-void MyStrategy::DoTacWpnShoot(int target)
-{
-	ACAI::WpnControlCmd outputData;
-	memset(&outputData, 0, sizeof(outputData));
-	outputData.launchPlaneID = mACFlightStatus.flightID; ///< 发射机编号
-    outputData.guidePlaneID	 = mACFlightStatus.flightID;  ///< 制导机编号
-    outputData.mslLockTgtID = mACRdrTarget.tgtInfos[target].tgtID;  ///< 导弹目标编号
-    outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
-	sendWpnControlCmd(outputData);
-}
-
-// 定向突防
-void MyStrategy::DoTacPointAtk()
+//左转偏置30
+void MyStrategy::DoTurnLeft30()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
 	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-    outputData.navCtrlCmd	= true;        ///< 航路飞行指令
-    outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
-	{
-		outputData.desireNavLon	= mPKConfig.RedMissionLon;    ///< 期望航路经度(rad)
-		outputData.desireNavLat	= mPKConfig.RedMissionLat;    ///< 期望航路纬度(rad)
-	}
-	else
-	{
-		outputData.desireNavLon	= mPKConfig.BlueMissionLon;    ///< 期望航路经度(rad)
-		outputData.desireNavLat	= mPKConfig.BlueMissionLat;    ///< 期望航路纬度(rad)
-	}
-    outputData.desireNavAlt = 4000;		///< 期望航路高度(m)
-    outputData.desireSpeed	= 1000;		///< 期望航路速度(m/s)
-    outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;			///< 期望高度(m)
+	outputData.desireHead = mACFlightStatus.heading-PI/6.0;	///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
 }
-
-// 置尾逃逸
+//左转偏置60
+void MyStrategy::DoTurnLeft60()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;			///< 期望高度(m)
+	outputData.desireHead = mACFlightStatus.heading-PI/3.0;	///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//右转偏置30
+void MyStrategy::DoTurnRight30()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;			///< 期望高度(m)
+	outputData.desireHead = mACFlightStatus.heading+PI/6.0;	///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//右转偏置60
+void MyStrategy::DoTurnRight60()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;			///< 期望高度(m)
+	outputData.desireHead = mACFlightStatus.heading+PI/3.0;	///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//掉头
 void MyStrategy::DoTacHeadEvade()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
 	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
 	outputData.altCtrlCmd = true;        ///< 高度保持指令
-    outputData.headCtrlCmd = true;       ///< 航向保持指令
-    outputData.speedCtrlCmd = true;      ///< 速度保持指令
-    outputData.desireAlt = 2000;       ///< 期望高度(m)
-    outputData.desireHead = mACMslWarning.threatInfos[0].azGeo + PI;///< 期望航路航向(rad)
-    outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-    outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;       ///< 期望高度(m)
+	outputData.desireHead = mACMslWarning.threatInfos[0].azGeo + PI;///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
+}
+//回环
+void MyStrategy::DoTacCir() {
+	unsigned long nowCnt = mACFlightStatus.timeCounter;
+	unsigned long cnt = nowCnt;
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnLeft();			//向左飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnFor();			//向前飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnLeft();			//向左飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnFor();			//向前飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnLeft();			//向左飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnFor();			//向前飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnLeft();			//向左飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+	while(Rule()&&((nowCnt-cnt)<=5)){
+		MyStrategy::DoTurnFor();			//向前飞行
+		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
+	}
+}
+//掉头后30度下潜
+void MyStrategy::DoTurnEvad30()
+{
+	MyStrategy::DoTacHeadEvade();
+	MyStrategy::DoTacNoseDiveM30();
+}
+//掉头后60度下潜
+void MyStrategy::DoTurnEvad60()
+{
+	MyStrategy::DoTacHeadEvade();
+	MyStrategy::DoTacNoseDiveM60();
+}
+
+//下落俯冲飞行
+void MyStrategy::DoTacNoseDive()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = mPKConfig.MinFlyHeight+100;       ///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//左转向
+void MyStrategy::DoTurnLeft()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = mACFlightStatus.heading-PI/2.0;			///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;		///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//右转向
+void MyStrategy::DoTurnRight()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = mACFlightStatus.heading+PI/2.0;			///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;		///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+//向前飞行
+void MyStrategy::DoTurnFor()
+{
+	ACAI::FlyControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+	outputData.altCtrlCmd = true;        ///< 高度保持指令
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = mACFlightStatus.heading;			///< 期望高度(m)
+	outputData.desireHead = mACRdrTarget.tgtInfos[0].azGeo;		///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	sendFlyControlCmd(outputData);
+}
+
+//--------------------------------------
+//战术动作库
+// 追击
+void MyStrategy::DoTrack() {
+	MyStrategy::DoTacToTar();
+}
+// 武器发射
+void MyStrategy::DoTacWpnShoot()
+{
+	ACAI::WpnControlCmd outputData;
+	memset(&outputData, 0, sizeof(outputData));
+	outputData.launchPlaneID = mACFlightStatus.flightID; ///< 发射机编号
+	outputData.guidePlaneID	 = mACFlightStatus.flightID;  ///< 制导机编号
+	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;  ///< 导弹目标编号
+	outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
+	sendWpnControlCmd(outputData);
+}
+
+//切换制导机
+void MyStrategy::SwitchGuideFlight() {
+	// TODO:切换制导机
+	if (mCOMSLInGuide.memMSLInGuide[0].mslCnt > 0
+		&& mACMSLInGuide.mslCnt == 0) { // 如果友机制导，自己未制导
+			ACAI::FlyControlCmd outputData;
+			memset(&outputData, 0, sizeof(outputData));
+			outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
+			outputData.altCtrlCmd = true;        ///< 高度保持指令
+			outputData.headCtrlCmd = true;       ///< 航向保持指令
+			outputData.speedCtrlCmd = true;      ///< 速度保持指令
+			outputData.desireAlt = 2000;       ///< 期望高度(m)
+			outputData.desireHead = mCOMSLInGuide.memMSLInGuide[0].guideInfos[0].mslGuideAz+35*PI/180;///< 期望航路航向(rad)
+			outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+			outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+			sendFlyControlCmd(outputData);
+	}
 }
 
 // 偏置制导
@@ -510,35 +682,11 @@ void MyStrategy::DoTacHeadGuide()
 	memset(&outputData, 0, sizeof(outputData));
 	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
 	outputData.altCtrlCmd = true;        ///< 高度保持指令
-    outputData.headCtrlCmd = true;       ///< 航向保持指令
-    outputData.speedCtrlCmd = true;      ///< 速度保持指令
-    outputData.desireAlt = 2000;       ///< 期望高度(m)
-    outputData.desireHead = mACMSLInGuide.guideInfos[0].mslGuideAz+35*PI/180;///< 期望航路航向(rad)
-    outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-    outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
-	sendFlyControlCmd(outputData);
-}
-
-// 爬升提速
-void MyStrategy::DoTacAltClimb()
-{
-	ACAI::FlyControlCmd outputData;
-	memset(&outputData, 0, sizeof(outputData));
-	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-    outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.navCtrlCmd = true;
-    outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-	if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
-	{
-		outputData.desireNavLon	= mPKConfig.RedMissionLon;    ///< 期望航路经度(rad)
-		outputData.desireNavLat	= mPKConfig.RedMissionLat;    ///< 期望航路纬度(rad)
-	}
-	else
-	{
-		outputData.desireNavLon	= mPKConfig.BlueMissionLon;    ///< 期望航路经度(rad)
-		outputData.desireNavLat	= mPKConfig.BlueMissionLat;    ///< 期望航路纬度(rad)
-	}
-	outputData.desireNavAlt = mACFlightStatus.alt + 100;
-    outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
+	outputData.headCtrlCmd = true;       ///< 航向保持指令
+	outputData.speedCtrlCmd = true;      ///< 速度保持指令
+	outputData.desireAlt = 2000;       ///< 期望高度(m)
+	outputData.desireHead = mACMSLInGuide.guideInfos[0].mslGuideAz+35*PI/180;///< 期望航路航向(rad)
+	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
 }
