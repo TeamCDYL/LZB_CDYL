@@ -87,36 +87,46 @@ void MyStrategy::timeSlice40()
 		DoTacAltClimb();
 	}*/
 	// 原战术
-	int check = Rule();
-	if (check != MyStrategy::NoWarn) {
-		ACAI::FlyControlCmd cmd;
-		memset(&cmd, 0, sizeof(cmd));
-		cmd.altCtrlCmd = true;
-		if (check & MyStrategy::AltWarn) {
-			if (mACFlightStatus.alt >= mPKConfig.MaxFlyHeight - 200) {
-				cmd.desireAlt = mPKConfig.MaxFlyHeight - 1000;
-			} else {
-				cmd.desireAlt = mPKConfig.MinFlyHeight + 1000;
-			}
-		} 
 
-		if (check & MyStrategy::LonWarn) {
-			if (mACFlightStatus.lon >= mPKConfig.RightUpLon - 5) {
-				cmd.desireNavLon = mPKConfig.RightUpLon - 10;
-			} else {
-				cmd.desireNavLon = mPKConfig.LeftDownLon + 10;
-			}
-		}
+	//--------------------------------------
+	//规则
 
-		if (check & MyStrategy::LatWarn) {
-			if (mACFlightStatus.lat >= mPKConfig.RightUpLat - 5) {
-				cmd.desireNavLat = mPKConfig.RightUpLat - 10;
-			} else {
-				cmd.desireNavLat = mPKConfig.LeftDownLat + 10;
-			}
-		}
-		sendFlyControlCmd(cmd);
+	int HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20;
+	int LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20;
+	int LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20;
+	int HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10;
+	int LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10;
+	int LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10;
+	ACAI::FlyControlCmd cmd;
+	memset(&cmd, 0, sizeof(cmd));
+	
+	cmd.desireAlt = mACFlightStatus.alt;
+	if (mACFlightStatus.alt < mPKConfig.MinFlyHeight + HeightEdge) {
+		cmd.navCtrlCmd = true;
+		cmd.desireNavAlt = mPKConfig.MaxFlyHeight - HeightCorrect;
+	} else if (mACFlightStatus.alt > mPKConfig.MaxFlyHeight - HeightEdge) {
+		cmd.desireNavAlt = mPKConfig.MinFlyHeight + HeightCorrect;
+		cmd.navCtrlCmd = true;
 	}
+
+	cmd.desireNavLon = mACFlightStatus.lon;
+	if (mACFlightStatus.lon > mPKConfig.RightUpLon - LonEdge) {
+		cmd.desireNavLon = mPKConfig.RightUpLon - LonCorrect;
+		cmd.navCtrlCmd = true;
+	} else if (mACFlightStatus.lon < mPKConfig.LeftDownLon + LonEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLon + LonCorrect;
+		cmd.navCtrlCmd = true;
+	}
+
+	cmd.desireNavLat = mACFlightStatus.lat;
+	if (mACFlightStatus.lat > mPKConfig.RightUpLat - LatEdge) {
+		cmd.desireNavLat = mPKConfig.RightUpLat - LatCorrect;
+		cmd.navCtrlCmd = true;
+	} else if (mACFlightStatus.lat < mPKConfig.LeftDownLat + LatEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLat + LatCorrect;
+		cmd.navCtrlCmd = true;
+	}
+	sendFlyControlCmd(cmd);
 
 	//单机战术
 	int mslWarningStartTime;
@@ -267,23 +277,6 @@ void MyStrategy::PrintStatus(const char * filename) {
 		mACFlightStatus.remainWpnNum						// 剩余武器量
 		);
 	fclose(fp);
-}
-
-//--------------------------------------
-//规则
-int MyStrategy::Rule()
-{
-	int flag = MyStrategy::NoWarn;
-	if(mACFlightStatus.alt < mPKConfig.MinFlyHeight + 200 ||
-		mACFlightStatus.alt > mPKConfig.MaxFlyHeight - 200)
-		flag |= MyStrategy::AltWarn;
-	if(mACFlightStatus.lon > mPKConfig.RightUpLon - 5 ||
-		mACFlightStatus.lon < mPKConfig.LeftDownLon + 5)
-		flag |= MyStrategy::LonWarn;
-	if(mACFlightStatus.lat > mPKConfig.RightUpLat - 5 ||
-		mACFlightStatus.lat < mPKConfig.LeftDownLat + 5)
-		flag |= MyStrategy::LatWarn;
-	return flag;
 }
 
 //--------------------------------------

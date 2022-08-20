@@ -216,15 +216,6 @@ private:
 	// Êä³ö×´Ì¬
 	void PrintStatus(const char * filename);
 
-	// ¹æÔò
-	enum RuleWarn {
-		NoWarn = 0,
-		AltWarn = 1,
-		LonWarn = 2,
-		LatWarn = 4
-	};
-	int Rule();
-
 	int m_lastWpnShootTimeCounter;
 };
 
