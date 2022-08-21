@@ -1,8 +1,8 @@
 #include "my_strategy.h"
 #include "memory.h"
 
-#define MY_STRATEGY_VERSION 0x010001
-#define MY_STRATEGY_VERSION_STR "1.00.001"
+#define MY_STRATEGT_VERSION 0x010001
+#define MY_STRATEGT_VERSION_STR "1.00.001"
 
 CStrategy* CreateStrategyInstance()
 {
@@ -15,14 +15,14 @@ MyStrategy::MyStrategy()
     initData();
 }
 
-unsigned int MyStrategy::version() const { return MY_STRATEGY_VERSION; }
+unsigned int MyStrategy::version() const { return MY_STRATEGT_VERSION; }
 const char* MyStrategy::name() const { return "Demo"; }
 const char* MyStrategy::slogan() const { return "GoGoGo"; }
 const char* MyStrategy::info() const { return "This is a test strategy"; }
 const char* MyStrategy::organization() const { return "CDYL"; }
 const char* MyStrategy::author() const { return "Author"; }
 const char* MyStrategy::teamMembers() const {
-    return " teamMembers£ºWYH LYF LYY LXY";
+	return " teamMembers£ºWYH LYF LYY LXY";
 }
 
 void MyStrategy::initData()
@@ -41,6 +41,5 @@ void MyStrategy::initData()
     memset(&mCOMslWarning, 0, sizeof(mCOMslWarning));
     memset(&mCOFCCStatus, 0, sizeof(mCOFCCStatus));
     memset(&mCOMSLInGuide, 0, sizeof(mCOMSLInGuide));
-
 	m_lastWpnShootTimeCounter = 0;
 }

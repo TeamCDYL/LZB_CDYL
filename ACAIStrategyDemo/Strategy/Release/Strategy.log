@@ -1,0 +1,51 @@
+﻿生成启动时间为 2022/8/5 14:35:11。
+     1>项目“C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”在节点 2 上(build 个目标)。
+     1>InitializeBuildStatus:
+         正在对“Release\Strategy.unsuccessfulbuild”执行 Touch 任务。
+       ClCompile:
+         所有输出均为最新。
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I../../interface /I../src /I../src/include /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D STRATEGY_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\..\interface\strategy_interface.cpp ..\src\my_strategy.cpp ..\src\my_strategy_ctrl.cpp ..\src\my_strategy_io.cpp
+         my_strategy_io.cpp
+         my_strategy_ctrl.cpp
+         my_strategy.cpp
+     1>..\src\my_strategy.cpp(8): warning C4273: “CreateStrategyInstance”: dll 链接不一致
+                 C:\Users\LY\Desktop\LZB_CDYL\interface\strategy_interface.h(202) : 参见“CreateStrategyInstance”的前一个定义
+         strategy_interface.cpp
+     1>..\..\interface\strategy_interface.cpp(10): warning C4273: “CStrategy::registerFlyCtrlCallback”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(152) : 参见“registerFlyCtrlCallback”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(16): warning C4273: “CStrategy::registerSnsCtrlCallback”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(156) : 参见“registerSnsCtrlCallback”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(22): warning C4273: “CStrategy::registerWpnCtrlCallback”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(160) : 参见“registerWpnCtrlCallback”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(28): warning C4273: “CStrategy::registerSendITDBCallback”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(164) : 参见“registerSendITDBCallback”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(34): warning C4273: “CStrategy::registereventLogCallback”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(168) : 参见“registereventLogCallback”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(41): warning C4273: “CStrategy::sendFlyControlCmd”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(173) : 参见“sendFlyControlCmd”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(53): warning C4273: “CStrategy::sendSnsControlCmd”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(177) : 参见“sendSnsControlCmd”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(65): warning C4273: “CStrategy::sendWpnControlCmd”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(181) : 参见“sendWpnControlCmd”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(77): warning C4273: “CStrategy::sendInTeamDataBag”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(185) : 参见“sendInTeamDataBag”的前一个定义
+     1>..\..\interface\strategy_interface.cpp(89): warning C4273: “CStrategy::logEvent”: dll 链接不一致
+                 c:\users\ly\desktop\lzb_cdyl\interface\strategy_interface.h(189) : 参见“logEvent”的前一个定义
+         正在生成代码...
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\Strategy.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.lib" /MACHINE:X86 /DLL Release\strategy_interface.obj
+         Release\my_strategy.obj
+         Release\my_strategy_ctrl.obj
+         Release\my_strategy_io.obj
+            正在创建库 C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.lib 和对象 C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.exp
+     1>my_strategy_ctrl.obj : warning LNK4217: 本地定义的符号 ?logEvent@CStrategy@@IBEXABUEventLog@ACAI@@@Z (protected: void __thiscall CStrategy::logEvent(struct ACAI::EventLog const &)const ) 在函数 "public: virtual void __thiscall ACStrategy::timeSlice40(void)" (?timeSlice40@ACStrategy@@UAEXXZ) 中导入
+     1>my_strategy_ctrl.obj : warning LNK4217: 本地定义的符号 ?sendFlyControlCmd@CStrategy@@IBEXABUFlyControlCmd@ACAI@@@Z (protected: void __thiscall CStrategy::sendFlyControlCmd(struct ACAI::FlyControlCmd const &)const ) 在函数 "private: void __thiscall ACStrategy::DoFullFly(void)" (?DoFullFly@ACStrategy@@AAEXXZ) 中导入
+     1>my_strategy_ctrl.obj : warning LNK4217: 本地定义的符号 ?sendWpnControlCmd@CStrategy@@IBEXABUWpnControlCmd@ACAI@@@Z (protected: void __thiscall CStrategy::sendWpnControlCmd(struct ACAI::WpnControlCmd const &)const ) 在函数 "private: void __thiscall ACStrategy::DoShoot(void)" (?DoShoot@ACStrategy@@AAEXXZ) 中导入
+     1>my_strategy.obj : error LNK2019: 无法解析的外部符号 "__declspec(dllimport) public: virtual __thiscall CStrategy::~CStrategy(void)" (__imp_??1CStrategy@@UAE@XZ)，该符号在函数 __unwindfunclet$??0ACStrategy@@QAE@XZ$0 中被引用
+     1>my_strategy.obj : error LNK2019: 无法解析的外部符号 "__declspec(dllimport) public: __thiscall CStrategy::CStrategy(void)" (__imp_??0CStrategy@@QAE@XZ)，该符号在函数 "public: __thiscall ACStrategy::ACStrategy(void)" (??0ACStrategy@@QAE@XZ) 中被引用
+     1>C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Release\Strategy.dll : fatal error LNK1120: 2 个无法解析的外部命令
+     1>已完成生成项目“C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”(build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:00.67
