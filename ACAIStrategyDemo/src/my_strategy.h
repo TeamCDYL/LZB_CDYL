@@ -11,6 +11,12 @@ extern "C"{
 	__declspec(dllexport) int ffunc(int a, int b);
 }
 
+extern int g_flight_state;	//飞机存活状态
+extern int g_cnt_state;		//导弹威胁状态
+extern int g_enmy_state;	//敌机数量状态
+extern int g_launch_state;	//我方发射导弹状态
+extern int g_guide_state;	//我方制导导弹状态
+
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
 {
@@ -51,6 +57,13 @@ public:
 	const char* teamMembers() const;
 
 public:
+	//机动动作集调用
+	void maneuver_i(int fin,int sin );
+
+    /// \brief 比赛开始处理函数
+    /// \details 每局比赛开始时调用
+    /// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
+    void onPKStart(const ACAI::PKConfig &pkConfig);
 
 	/// \brief 比赛开始处理函数
 	/// \details 每局比赛开始时调用
@@ -159,8 +172,6 @@ private:
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
 
 private:
-	//机动动作集调用
-	void maneuver_i(int fin, int sin);
 	//向敌方防线飞行
 	void DoTacPointAtk();
 	//向一架敌机飞行
@@ -194,7 +205,6 @@ private:
 
 
 
-	void DoTacNoseDive();
 	//左转向
 	void DoTurnLeft();
 	//右转向
@@ -202,10 +212,9 @@ private:
 	//向前飞行
 	void DoTurnFor();
 
-	void DoTrack();
 	//攻击动作集
 	//武器发射
-	void DoTacWpnShoot();
+	void DoTacWpnShoot(int m=0);
 	//切换制导机
 	void SwitchGuideFlight();
 
@@ -216,7 +225,14 @@ private:
 	// 输出状态
 	void PrintStatus(const char * filename);
 
-	int m_lastWpnShootTimeCounter;
+	//
+	void SetFlightState(unsigned int flightID);
+	//奖赏函数
+	int OutputReward();
+	//打印出奖赏值
+	void PrintReward();
+
+
 };
 
 #endif // MY_STRATEGY_H

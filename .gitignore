@@ -1,2 +1,6 @@
 ## ignore these files ##
 interface/
+*.obj
+*.sln
+*.sdf
+*.pdb
