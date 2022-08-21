@@ -41,6 +41,5 @@ void MyStrategy::initData()
     memset(&mCOMslWarning, 0, sizeof(mCOMslWarning));
     memset(&mCOFCCStatus, 0, sizeof(mCOFCCStatus));
     memset(&mCOMSLInGuide, 0, sizeof(mCOMSLInGuide));
-
-	int m_lastWpnShootTimeCounter = 0;
+	m_lastWpnShootTimeCounter = 0;
 }

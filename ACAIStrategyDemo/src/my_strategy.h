@@ -1,7 +1,6 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
 
-#include "strategy_interface.h"
 #include <Python.h>
 #include "strategy_interface.h"
 #include "file_watcher.h"
@@ -11,11 +10,11 @@ extern "C"{
 	__declspec(dllexport) int ffunc(int a, int b);
 }
 
-extern int g_flight_state;	//飞机存活状态
-extern int g_cnt_state;		//导弹威胁状态
-extern int g_enmy_state;	//敌机数量状态
-extern int g_launch_state;	//我方发射导弹状态
-extern int g_guide_state;	//我方制导导弹状态
+int g_flight_state;	//飞机存活状态
+int g_cnt_state;		//导弹威胁状态
+int g_enmy_state;	//敌机数量状态
+int g_launch_state;	//我方发射导弹状态
+int g_guide_state;	//我方制导导弹状态
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -64,11 +63,6 @@ public:
     /// \details 每局比赛开始时调用
     /// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
     void onPKStart(const ACAI::PKConfig &pkConfig);
-
-	/// \brief 比赛开始处理函数
-	/// \details 每局比赛开始时调用
-	/// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
-	void onPKStart(const ACAI::PKConfig &pkConfig);
 
 	/// \brief 比赛结束处理函数
 	/// \details 每局比赛结束时调用
@@ -198,12 +192,11 @@ private:
 	void DoTacHeadEvade();
 	//回环
 	void DoTacCir();
+	void DoTrack();
 	//掉头后30度下潜
 	void DoTurnEvad30();
 	//掉头后60度下潜
 	void DoTurnEvad60();
-
-
 
 	//左转向
 	void DoTurnLeft();
@@ -214,7 +207,7 @@ private:
 
 	//攻击动作集
 	//武器发射
-	void DoTacWpnShoot(int m=0);
+	void DoTacWpnShoot(int m = 0);
 	//切换制导机
 	void SwitchGuideFlight();
 
@@ -232,6 +225,7 @@ private:
 	//打印出奖赏值
 	void PrintReward();
 
+	int m_lastWpnShootTimeCounter;
 
 };
 
