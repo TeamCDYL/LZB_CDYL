@@ -685,35 +685,35 @@ void MyStrategy::SwitchGuideFlight() {
 void MyStrategy::DoTacCir() {
 	unsigned long nowCnt = mACFlightStatus.timeCounter;
 	unsigned long cnt = nowCnt;
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnLeft();			//向左飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnLeft();			//向左飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnLeft();			//向左飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnLeft();			//向左飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	while(Rule()&&((nowCnt-cnt)<=5)){
+	while(((nowCnt-cnt)<=5)){
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
@@ -724,25 +724,6 @@ void MyStrategy::DoTacCir() {
 // 追击
 void MyStrategy::DoTrack() {
 	MyStrategy::DoTacToTar();
-}
-
-//切换制导机
-void MyStrategy::SwitchGuideFlight() {
-	// TODO:切换制导机
-	if (mCOMSLInGuide.memMSLInGuide[0].mslCnt > 0
-		&& mACMSLInGuide.mslCnt == 0) { // 如果友机制导，自己未制导
-			ACAI::FlyControlCmd outputData;
-			memset(&outputData, 0, sizeof(outputData));
-			outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-			outputData.altCtrlCmd = true;        ///< 高度保持指令
-			outputData.headCtrlCmd = true;       ///< 航向保持指令
-			outputData.speedCtrlCmd = true;      ///< 速度保持指令
-			outputData.desireAlt = 2000;       ///< 期望高度(m)
-			outputData.desireHead = mCOMSLInGuide.memMSLInGuide[0].guideInfos[0].mslGuideAz+35*PI/180;///< 期望航路航向(rad)
-			outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-			outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
-			sendFlyControlCmd(outputData);
-	}
 }
 
 // 偏置制导
@@ -859,7 +840,7 @@ void MyStrategy::PrintReward(){
 		printf("failed open file");
 	}
 	else{
-			numberReward=PrintReward();
+			numberReward = PrintReward();
 			fprintf(fp,"%d\n",numberReward);
 		}
 }

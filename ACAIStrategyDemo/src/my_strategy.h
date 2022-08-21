@@ -193,6 +193,7 @@ private:
 	void DoTacHeadEvade();
 	//回环
 	void DoTacCir();
+	void DoTrack();
 	//掉头后30度下潜
 	void DoTurnEvad30();
 	//掉头后60度下潜
