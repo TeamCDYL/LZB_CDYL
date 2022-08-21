@@ -209,6 +209,7 @@ private:
 	// 动作读取
 	void readAction();
 
+	void readActionByPro(int fin, int sin); // 专家模式读取动作
 	// 输出状态
 	void PrintStatus(const char * filename);
 

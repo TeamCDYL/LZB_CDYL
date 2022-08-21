@@ -11,12 +11,27 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
     // TODO : 此处添加用户代码响应比赛开始
+	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+		FILE *tmp = fopen("state1.csv", "w"); // 清空文件内容
+		fclose(tmp);
+		PrintStatus("state1.csv");
+	} else {
+		FILE *tmp = fopen("state2.csv", "w"); // 清空文件内容
+		fclose(tmp);
+		PrintStatus("state2.csv");
+	}
+	FILE *tmp = fopen("false", "w"); // 标志对战开始
+	fclose(tmp);
+	remove("true");
 }
 
 void MyStrategy::onPKEnd()
 {
     // TODO : 此处添加用户代码响应比赛结束
 	initData();
+	FILE *tmp = fopen("true", "w"); // 标志对战结束
+	fclose(tmp);
+	remove("false");
 }
 
 void MyStrategy::onPKOut(unsigned int flightID)
@@ -44,81 +59,6 @@ void MyStrategy::timeSlice40()
     // TODO : 此处添加用户代码执行40ms周期任务
 	ACAI::EventLog outputData;
 	memset(&outputData, 0, sizeof(outputData));
-	/*
-	if( mACMslWarning.mslCnt > 0 )
-	{// 置尾逃逸
-		DoTacHeadEvade();
-		// 日志显示
-		strcpy(outputData.EventDes, "置尾逃逸");
-		logEvent(outputData);
-	}
-	if(    0 == mACRdrTarget.tgtCnt 
-		&& 0 == mACMslWarning.mslCnt 
-		&& 0 == mACMSLInGuide.mslCnt 
-		&& false == mACFCCStatus.envInfos[0].FPoleValid )
-	{// 定向突防
-		DoTacPointAtk();
-		// 日志显示
-		strcpy(outputData.EventDes, "定向突防");
-		logEvent(outputData);
-	}
-	if(    mACRdrTarget.tgtCnt > 0 
-		&& 0 == mACMslWarning.mslCnt 
-		&& mACMSLInGuide.mslCnt > 0  )
-	{// 偏置制导
-		// 日志显示
-		strcpy(outputData.EventDes, "偏置制导");
-		DoTacHeadGuide();
-		logEvent(outputData);
-	}
-	if(    0 < mACRdrTarget.tgtCnt 
-		&& 0 == mACMslWarning.mslCnt 
-		&& 0 == mACMSLInGuide.mslCnt 
-		&& 0 == mTeamMSLLaunched.mslCnt )
-	{// 爬升扩包
-		if( mACFCCStatus.envInfos[0].FPoleValid && ((int)mACFlightStatus.timeCounter) - (int)m_lastWpnShootTimeCounter > 10000 )
-		{// 武器发射
-			m_lastWpnShootTimeCounter = mACFlightStatus.timeCounter;
-			DoTacWpnShoot();
-			// 日志显示
-			strcpy(outputData.EventDes, "武器发射");
-			logEvent(outputData);
-		}
-		else
-		{
-			// 日志显示
-			strcpy(outputData.EventDes, "爬升扩包");
-			logEvent(outputData);
-		}
-		DoTacAltClimb();
-	}*/
-	// 原战术
-/*	int check = Rule();
-	if (check != MyStrategy::NoWarn) {
-		ACAI::FlyControlCmd cmd;
-		memset(&cmd, 0, sizeof(cmd));
-		cmd.altCtrlCmd = true;
-		if (check & MyStrategy::AltWarn) {
-			if (mACFlightStatus.alt >= mPKConfig.MaxFlyHeight - 200) {
-				cmd.desireAlt = mPKConfig.MaxFlyHeight - 1000;
-			} else {
-				cmd.desireAlt = mPKConfig.MinFlyHeight + 1000;
-			}
-		} 
-
-	//--------------------------------------
-	//规则
-
-		if (check & MyStrategy::LatWarn) {
-			if (mACFlightStatus.lat >= mPKConfig.RightUpLat - 5) {
-				cmd.desireNavLat = mPKConfig.RightUpLat - 10;
-			} else {
-				cmd.desireNavLat = mPKConfig.LeftDownLat + 10;
-			}
-		}
-		sendFlyControlCmd(cmd);
-	}*/
-	
 	//规则
 
 	double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
@@ -157,13 +97,19 @@ void MyStrategy::timeSlice40()
 		cmd.navCtrlCmd = true;
 	}
 	sendFlyControlCmd(cmd);
-	
+
+
+#ifdef DEEP_LEARNING	// 深度学习时读取动作
+	readAction(); 
+#endif
+
+#ifndef DEEP_LEARNING // 专家模式时执行动作
 	//单机战术
-	int mslWarningStartTime = 0;
+	static int mslWarningStartTime = 0;
 	if (mACMslWarning.mslCnt > 0) {	
-		if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000)		// 导弹警告开始3秒后躲避
-		{
-			DoTacHeadEvade();
+		if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) {		// 导弹警告开始3秒后躲避
+			readActionByPro(0, 11);
+			//DoTacHeadEvade();
 			strcpy(outputData.EventDes, "掉头");
 			logEvent(outputData);
 		}
@@ -173,44 +119,45 @@ void MyStrategy::timeSlice40()
 	}
 	// 无法攻击，无需躲避时全速突进
 	if (mACRdrTarget.tgtCnt >= 0 &&	mACMslWarning.mslCnt ==0) {
+		readActionByPro(0, 1);
 		//DoTacPointAtk();
-		DoTacPointAtk();
 		strcpy(outputData.EventDes, "向敌方防线突围");
 		logEvent(outputData);
 	}
 	if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt > 0) {
 		// 判断追击还是突破
 		// 存在敌人时
-		if (mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid)
-		{
-				DoTacWpnShoot();
-				strcpy(outputData.EventDes, "武器发射");
-				logEvent(outputData);
-		}
-		if (mACFCCStatus.envInfos[1].FPoleValid || mACFCCStatus.envInfos[1].APoleValid)
-		{
-			DoTacWpnShoot(1);
-			strcpy(outputData.EventDes,"武器发射");
+		if (mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid) {
+			readActionByPro(1, 1);
+			//DoTacWpnShoot();
+			strcpy(outputData.EventDes, "武器发射");
 			logEvent(outputData);
 		}
-		else {
-			DoTacToTar();
+		if (mACFCCStatus.envInfos[1].FPoleValid || mACFCCStatus.envInfos[1].APoleValid) {
+			readActionByPro(1, 3);
+			//DoTacWpnShoot(1);
+			strcpy(outputData.EventDes,"武器发射");
+			logEvent(outputData);
+		} else {
+			readActionByPro(0, 2);
+			//DoTacToTar();
 			strcpy(outputData.EventDes, "向一架敌方飞机飞行");
 			logEvent(outputData);
 		}
 	}
 	if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt == 0) {
-
-		DoTacAltClimbP60();
+		readActionByPro(0, 4);
+		//DoTacAltClimbP60();
 		strcpy(outputData.EventDes, "加60度上升");
 		logEvent(outputData);
-		if (mACFlightStatus.alt==4000)
-		{
-			DoTacPointAtk();
+		if (mACFlightStatus.alt==4000) {
+			readActionByPro(0, 1);
+			//DoTacPointAtk();
 			strcpy(outputData.EventDes, "向敌方防线突袭");
 			logEvent(outputData);
 		}
 	}
+#endif
 }
 
 //--------------------------------------
@@ -234,19 +181,7 @@ void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		if (watch(L".", "action1.csv", deal, &act)) {
-			if (act.fin == 0) { // TODO:根据二级索引执行动作
-				switch (act.sin) {
-				case 1:
-				default:
-					DoTacHeadEvade();
-				}
-			} else {
-				if (act.sin == 1) {
-					DoTacWpnShoot();
-				} else {
-					SwitchGuideFlight();
-				}
-			}
+			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();
 			return;
@@ -255,12 +190,29 @@ void MyStrategy::readAction() {
 		PrintStatus("state1.csv");
 	} else {
 		if (watch(L".", "action2.csv", deal, &act)) {
-
+			maneuver_i(act.fin, act.sin);
+		} else { // 监听期间文件未发生改变
+			DoTacHeadEvade();
+			return;
 		}
 		PrintStatus("state2.csv");
 	}
 	return;
-	
+}
+
+void MyStrategy::readActionByPro(int fin, int sin) { // 一二级索引
+	maneuver_i(fin, sin);
+#ifndef DEEP_LEARNING // 专家模式时输出动作
+	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+		FILE *fp = fopen("action1.csv", "w");
+		fprintf(fp, "%d, %d", fin, sin);
+		fclose(fp);
+	} else {
+		FILE *fp = fopen("action2.csv", "w");
+		fprintf(fp, "%d, %d", fin, sin);
+		fclose(fp);
+	}
+#endif
 }
 
 #define POW2(x) (x) * (x)
@@ -289,7 +241,7 @@ void MyStrategy::PrintStatus(const char * filename) {
 		fclose(fp);
 		fp = fopen(filename, "a");
 	}
-	fprintf(fp, "[%d] %f %f %f %f %f %f %f %f %f %f %d %d %d %d %d %d\n",
+	fprintf(fp, "[%d], %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d, %d, %d, %d, %d, %d\n",
 		mACFlightStatus.timeCounter,						// [时标]
 		mACRdrTarget.tgtInfos[0].slantRange,				// 目标距离
 		mACFlightStatus.alt - mACRdrTarget.tgtInfos[0].alt, // 目标高度差
@@ -310,7 +262,7 @@ void MyStrategy::PrintStatus(const char * filename) {
 		mACMslWarning.mslCnt > 0,							// 是否被导弹锁定
 		mACMSLInGuide.mslCnt > 0,							// 是否在制导
 		mACFlightStatus.remainWpnNum,						// 剩余武器量
-		mACRdrTarget.tgtCnt,									// 扫描到的低级数量
+		mACRdrTarget.tgtCnt,								// 扫描到的敌机数量
 		mACMslWarning.mslCnt,								// 锁定自己的导弹数量
 		mACMSLInGuide.mslCnt + nCoMslCnt					// 场上我方导弹数量
 		);
@@ -346,10 +298,10 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 		switch(sin) {
 		case 1:DoTacWpnShoot();break;
 		case 2:SwitchGuideFlight();break;
+		case 3:DoTacWpnShoot(1);break;
 		default:break;
 		}
 	}
-	
 }
 //向敌方防线飞行
 void MyStrategy::DoTacPointAtk()
@@ -373,7 +325,7 @@ void MyStrategy::DoTacPointAtk()
 	outputData.desireSpeed	= 1000;     ///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
+	
 }
 //向一架敌机飞行
 void MyStrategy::DoTacToTar()
@@ -388,7 +340,6 @@ void MyStrategy::DoTacToTar()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData.desireHead =mACRdrTarget.tgtInfos[0].azGeo;
 	sendFlyControlCmd(outputData);
-
 }
 //+30度加速爬升
 void MyStrategy::DoTacAltClimbP30()
@@ -404,8 +355,6 @@ void MyStrategy::DoTacAltClimbP30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
-
 }
 //+60度加速爬升
 void MyStrategy::DoTacAltClimbP60()
@@ -421,7 +370,6 @@ void MyStrategy::DoTacAltClimbP60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //-30度下潜
 void MyStrategy::DoTacNoseDiveM30()
@@ -437,7 +385,6 @@ void MyStrategy::DoTacNoseDiveM30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //-60度下潜
 void MyStrategy::DoTacNoseDiveM60()
@@ -453,7 +400,6 @@ void MyStrategy::DoTacNoseDiveM60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //蛇形机动
 void MyStrategy::DoTacStaHov()
@@ -492,7 +438,6 @@ void MyStrategy::DoTacStaHov()
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	PrintReward();
 }
 //左转偏置30
 void MyStrategy::DoTurnLeft30()
@@ -508,7 +453,6 @@ void MyStrategy::DoTurnLeft30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //左转偏置60
 void MyStrategy::DoTurnLeft60()
@@ -524,7 +468,6 @@ void MyStrategy::DoTurnLeft60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //右转偏置30
 void MyStrategy::DoTurnRight30()
@@ -540,7 +483,6 @@ void MyStrategy::DoTurnRight30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //右转偏置60
 void MyStrategy::DoTurnRight60()
@@ -556,7 +498,6 @@ void MyStrategy::DoTurnRight60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 //掉头
 void MyStrategy::DoTacHeadEvade()
@@ -572,7 +513,6 @@ void MyStrategy::DoTacHeadEvade()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	PrintReward();
 }
 
 //掉头后30度下潜
@@ -585,7 +525,6 @@ void MyStrategy::DoTurnEvad30()
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
 	DoTacNoseDiveM30();
-	PrintReward();
 }
 //掉头后60度下潜
 void MyStrategy::DoTurnEvad60()
@@ -597,7 +536,6 @@ void MyStrategy::DoTurnEvad60()
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
 	DoTacNoseDiveM60();
-	PrintReward();
 }
 //-30度下潜
 //左转向
@@ -629,7 +567,6 @@ void MyStrategy::DoTurnRight()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-
 }
 //向前飞行
 void MyStrategy::DoTurnFor()
@@ -667,7 +604,6 @@ void MyStrategy::DoTacWpnShoot(int m)
 	
 	outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
 	sendWpnControlCmd(outputData);
-	PrintReward();
 }
 
 //切换制导机并发射武器
@@ -692,7 +628,6 @@ void MyStrategy::SwitchGuideFlight() {
 		outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
 		sendWpnControlCmd(outputData);
 	}
-	PrintReward();
 }
 //回环
 void MyStrategy::DoTacCir() {
@@ -845,15 +780,15 @@ int MyStrategy::OutputReward()
 	return reward;
 }
 //打印出奖赏值
-void MyStrategy::PrintReward(){
+void MyStrategy::PrintReward() {
 	int numberReward;
 	FILE* fp;
-	if((fp=fopen("D://reward.csv","a"))==NULL)
+	if((fp=fopen("reward.csv","a"))==NULL)
 	{
 		printf("failed open file");
+	} else {
+		numberReward = OutputReward();
+		fprintf(fp,"%d\n",numberReward);
 	}
-	else{
-			numberReward = OutputReward();
-			fprintf(fp,"%d\n",numberReward);
-		}
+	fclose(fp);
 }
