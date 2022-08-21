@@ -10,12 +10,6 @@ extern "C"{
 	__declspec(dllexport) int ffunc(int a, int b);
 }
 
-int g_flight_state;	//飞机存活状态
-int g_cnt_state;		//导弹威胁状态
-int g_enmy_state;	//敌机数量状态
-int g_launch_state;	//我方发射导弹状态
-int g_guide_state;	//我方制导导弹状态
-
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
 {

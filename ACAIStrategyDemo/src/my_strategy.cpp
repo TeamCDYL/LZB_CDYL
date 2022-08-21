@@ -16,13 +16,13 @@ MyStrategy::MyStrategy()
 }
 
 unsigned int MyStrategy::version() const { return MY_STRATEGT_VERSION; }
-const char* MyStrategy::name() const { return "Your name"; }
-const char* MyStrategy::slogan() const { return "Your slogan!"; }
-const char* MyStrategy::info() const { return "'Your info."; }
-const char* MyStrategy::organization() const { return "Your organization"; }
+const char* MyStrategy::name() const { return "Demo"; }
+const char* MyStrategy::slogan() const { return "GoGoGo"; }
+const char* MyStrategy::info() const { return "This is a test strategy"; }
+const char* MyStrategy::organization() const { return "CDYL"; }
 const char* MyStrategy::author() const { return "Author"; }
 const char* MyStrategy::teamMembers() const {
-    return " teamMembers£ºZhang San, Li Si";
+	return " teamMembers£ºWYH LYF LYY LXY";
 }
 
 void MyStrategy::initData()

@@ -1,6 +1,12 @@
 #include "my_strategy.h"
 #include "string.h"
 
+int g_flight_state;	//飞机存活状态
+int g_cnt_state;		//导弹威胁状态
+int g_enmy_state;	//敌机数量状态
+int g_launch_state;	//我方发射导弹状态
+int g_guide_state;	//我方制导导弹状态
+
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
@@ -271,6 +277,10 @@ double getTdAngle(const double vect1[3], const double vect2[3]) {
 void MyStrategy::PrintStatus(const char * filename) {
 	static const double dis2Lons = 160000 / (mPKConfig.RightUpLon - mPKConfig.LeftDownLon);
 	static const double dis2Lats = 80000 / (mPKConfig.RightUpLat - mPKConfig.LeftDownLat);
+	int nCoMslCnt = 0;
+	for (int i = 0; i < mCOMSLInGuide.flightMemCnt; ++i) {
+		nCoMslCnt += mCOMSLInGuide.memMSLInGuide[0].mslCnt;
+	}
 	FILE* fp = fopen(filename, "r");
 	if (fp == NULL) {
 		fclose(fp);
@@ -279,7 +289,7 @@ void MyStrategy::PrintStatus(const char * filename) {
 		fclose(fp);
 		fp = fopen(filename, "a");
 	}
-	fprintf(fp, "[%d] %f %f %f %f %f %f %f %f %f %f %d %d %d\n",
+	fprintf(fp, "[%d] %f %f %f %f %f %f %f %f %f %f %d %d %d %d %d %d\n",
 		mACFlightStatus.timeCounter,						// [时标]
 		mACRdrTarget.tgtInfos[0].slantRange,				// 目标距离
 		mACFlightStatus.alt - mACRdrTarget.tgtInfos[0].alt, // 目标高度差
@@ -299,7 +309,10 @@ void MyStrategy::PrintStatus(const char * filename) {
 															// 敌机速度矢量夹角
 		mACMslWarning.mslCnt > 0,							// 是否被导弹锁定
 		mACMSLInGuide.mslCnt > 0,							// 是否在制导
-		mACFlightStatus.remainWpnNum						// 剩余武器量
+		mACFlightStatus.remainWpnNum,						// 剩余武器量
+		mACRdrTarget.tgtCnt,									// 扫描到的低级数量
+		mACMslWarning.mslCnt,								// 锁定自己的导弹数量
+		mACMSLInGuide.mslCnt + nCoMslCnt					// 场上我方导弹数量
 		);
 	fclose(fp);
 }
