@@ -817,7 +817,7 @@ void MyStrategy::PrintReward(){
 		printf("failed open file");
 	}
 	else{
-			numberReward=PrintReward();
-			fprintf(fp,"%d\n",numberReward);
+		numberReward=OutputReward();
+		fprintf(fp,"%d\n",numberReward);
 		}
 }
