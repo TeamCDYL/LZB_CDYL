@@ -1,10 +1,21 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
 
+#include "strategy_interface.h"
 #include <Python.h>
 #include "strategy_interface.h"
 #include "file_watcher.h"
 #include <math.h>
+
+extern "C"{
+__declspec(dllexport) int ffunc(int a, int b);
+}
+
+extern int g_flight_state;	//飞机存活状态
+extern int g_cnt_state;		//导弹威胁状态
+extern int g_enmy_state;	//敌机数量状态
+extern int g_launch_state;	//我方发射导弹状态
+extern int g_guide_state;	//我方制导导弹状态
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -42,6 +53,9 @@ public:
     const char* teamMembers() const;
 
 public:
+	//机动动作集调用
+	void maneuver_i(int fin,int sin );
+
     /// \brief 比赛开始处理函数
     /// \details 每局比赛开始时调用
     /// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
@@ -149,25 +163,50 @@ private:
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
 
 private:
-	// 战术动作库
-	// 定向突防
+	//向敌方防线飞行
 	void DoTacPointAtk();
-	// 置尾逃逸
-	unsigned long mslWarningStartTime;
+	//向一架敌机飞行
+	void DoTacToTar();
+	//+30度加速爬升
+	void DoTacAltClimbP30();
+	//+60度加速爬升
+	void DoTacAltClimbP60();
+	//-30度下潜
+	void DoTacNoseDiveM30();
+	//-60度下潜
+	void DoTacNoseDiveM60();
+	//蛇形机动
+	void DoTacStaHov();
+	//左转偏置30
+	void DoTurnLeft30();
+	//左转偏置60
+	void DoTurnLeft60();
+	//右转偏置30
+	void DoTurnRight30();
+	//右转偏置60
+	void DoTurnRight60();
+	//掉头
 	void DoTacHeadEvade();
-	// 偏置制导
-	void DoTacHeadGuide();
-	// 爬升提速
-	void DoTacAltClimb();
-	// 武器发射
-	unsigned long m_lastWpnShootTimeCounter; //上次发射时间
-	void DoTacWpnShoot(int target);
+	//回环
+	void DoTacCir();
+	//掉头后30度下潜
+	void DoTurnEvad30();
+	//掉头后60度下潜
+	void DoTurnEvad60();
 
-	// 新增战术
-	void DoTrack(int target);//追击
-	void DoTacCir();//回环
-	void DoTacStaHov();//蛇形机动
 
+
+	//左转向
+	void DoTurnLeft();
+	//右转向
+	void DoTurnRight();
+	//向前飞行
+	void DoTurnFor();
+
+	//攻击动作集
+	//武器发射
+	void DoTacWpnShoot(int m=0);
+	//切换制导机
 	void SwitchGuideFlight();
 
 	// 动作读取
@@ -176,21 +215,14 @@ private:
 	// 输出状态
 	void PrintStatus(const char * filename);
 
-	// 规则
-	enum RuleWarn {
-		NoWarn = 0,
-		AltWarn = 1,
-		LonWarn = 2,
-		LatWarn = 4
-	};
-	int Rule();
-	
-	// 动作库
-	void DoTacToTar(int target);//转向目标
-	void DoTacNoseDive();//下落俯冲飞行
-	void DoTurnLeft();//左转向
-	void DoTurnRight();//右转向
-	void DoTurnFor();//向前飞行
+	//
+	void SetFlightState(unsigned int flightID);
+	//奖赏函数
+	int OutputReward();
+	//打印出奖赏值
+	void PrintReward();
+
+
 };
 
 #endif // MY_STRATEGY_H
