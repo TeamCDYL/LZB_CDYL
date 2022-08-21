@@ -65,11 +65,6 @@ public:
     /// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
     void onPKStart(const ACAI::PKConfig &pkConfig);
 
-	/// \brief 比赛开始处理函数
-	/// \details 每局比赛开始时调用
-	/// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
-	void onPKStart(const ACAI::PKConfig &pkConfig);
-
 	/// \brief 比赛结束处理函数
 	/// \details 每局比赛结束时调用
 	/// \param[in] pkResult 比赛结果信息 \sa ACAI::pkResult
@@ -214,7 +209,7 @@ private:
 
 	//攻击动作集
 	//武器发射
-	void DoTacWpnShoot(int m=0);
+	void DoTacWpnShoot(int m = 0);
 	//切换制导机
 	void SwitchGuideFlight();
 
