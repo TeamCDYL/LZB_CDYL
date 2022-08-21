@@ -91,12 +91,12 @@ void MyStrategy::timeSlice40()
 	//--------------------------------------
 	//πÊ‘Ú
 
-	int HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20;
-	int LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20;
-	int LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20;
-	int HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10;
-	int LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10;
-	int LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10;
+	double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20;
+	double LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20;
+	double LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20;
+	double HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10;
+	double LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10;
+	double LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10;
 	ACAI::FlyControlCmd cmd;
 	memset(&cmd, 0, sizeof(cmd));
 	
