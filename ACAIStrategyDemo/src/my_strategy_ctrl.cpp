@@ -153,17 +153,17 @@ void MyStrategy::timeSlice40()
 	sendFlyControlCmd(cmd);
 	
 	//单机战术
-	int mslWarningStartTime;
+	int mslWarningStartTime = 0;
 	if (mACMslWarning.mslCnt > 0) {	
 		if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000)		// 导弹警告开始3秒后躲避
 		{
-		DoTacHeadEvade();
-		strcpy(outputData.EventDes, "掉头");
-		logEvent(outputData);
+			DoTacHeadEvade();
+			strcpy(outputData.EventDes, "掉头");
+			logEvent(outputData);
 		}
-	 else { // 在没有导弹警告时刷新导弹警告计时器
-		mslWarningStartTime = mACFlightStatus.timeCounter;
-	}
+		 else { // 在没有导弹警告时刷新导弹警告计时器
+			mslWarningStartTime = mACFlightStatus.timeCounter;
+		}
 	}
 	// 无法攻击，无需躲避时全速突进
 	if (mACRdrTarget.tgtCnt >= 0 &&	mACMslWarning.mslCnt ==0) {
@@ -840,7 +840,7 @@ void MyStrategy::PrintReward(){
 		printf("failed open file");
 	}
 	else{
-			numberReward = PrintReward();
+			numberReward = OutputReward();
 			fprintf(fp,"%d\n",numberReward);
 		}
 }

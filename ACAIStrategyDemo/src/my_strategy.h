@@ -1,7 +1,6 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
 
-#include "strategy_interface.h"
 #include <Python.h>
 #include "strategy_interface.h"
 #include "file_watcher.h"
@@ -11,11 +10,11 @@ extern "C"{
 	__declspec(dllexport) int ffunc(int a, int b);
 }
 
-extern int g_flight_state;	//飞机存活状态
-extern int g_cnt_state;		//导弹威胁状态
-extern int g_enmy_state;	//敌机数量状态
-extern int g_launch_state;	//我方发射导弹状态
-extern int g_guide_state;	//我方制导导弹状态
+int g_flight_state;	//飞机存活状态
+int g_cnt_state;		//导弹威胁状态
+int g_enmy_state;	//敌机数量状态
+int g_launch_state;	//我方发射导弹状态
+int g_guide_state;	//我方制导导弹状态
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -199,8 +198,6 @@ private:
 	//掉头后60度下潜
 	void DoTurnEvad60();
 
-
-
 	//左转向
 	void DoTurnLeft();
 	//右转向
@@ -228,6 +225,7 @@ private:
 	//打印出奖赏值
 	void PrintReward();
 
+	int m_lastWpnShootTimeCounter;
 
 };
 
