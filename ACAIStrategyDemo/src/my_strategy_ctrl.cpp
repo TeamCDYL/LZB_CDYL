@@ -7,18 +7,47 @@ int g_enmy_state;	//敌机数量状态
 int g_launch_state;	//我方发射导弹状态
 int g_guide_state;	//我方制导导弹状态
 
+#define LEAD_STATE "state1.csv"
+#define WING_STATE "state2.csv"
+#define LEAD_ACTION "action1.csv"
+#define WING_ACTION "action2.csv"
+#define LEAD_REWARD "reward1.csv"
+#define WING_REWARD "reward2.csv"
+const char * ActionTitle = "action first index, action second index\n";
+const char * StateTitle = "[time counter], distance to enemy, alt distance to enemy, "
+						"direction to enemy, enemy speed, friend speed, "
+						"distance to friend, alt distance to friend, speed direct to friend, "
+						"self speed, speed direct to enemy, is locked by msl, "
+						"is in guide, remaining msl, enemy in rdr, "
+						"n msl locked, our n msl\n";
+const char * RewardTitle = "reward\n";
+
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
     // TODO : 此处添加用户代码响应比赛开始
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-		FILE *tmp = fopen("state1.csv", "w"); // 清空文件内容
+		FILE *tmp = fopen(LEAD_STATE, "w"); // 清空文件内容
+		fprintf(tmp, StateTitle);			// 文件表头
 		fclose(tmp);
-		PrintStatus("state1.csv");
+		tmp = fopen(LEAD_ACTION, "w");
+		fprintf(tmp, ActionTitle);
+		fclose(tmp);
+		tmp = fopen(LEAD_REWARD, "w");
+		fprintf(tmp, RewardTitle);
+		fclose(tmp);
+		PrintStatus(LEAD_STATE);
 	} else {
-		FILE *tmp = fopen("state2.csv", "w"); // 清空文件内容
+		FILE *tmp = fopen(WING_STATE, "w"); // 清空文件内容
+		fprintf(tmp, StateTitle);			// 文件表头
 		fclose(tmp);
-		PrintStatus("state2.csv");
+		tmp = fopen(WING_ACTION, "w");
+		fprintf(tmp, ActionTitle);
+		fclose(tmp);
+		tmp = fopen(WING_REWARD, "w");
+		fprintf(tmp, RewardTitle);
+		fclose(tmp);
+		PrintStatus(WING_STATE);
 	}
 	FILE *tmp = fopen("false", "w"); // 标志对战开始
 	fclose(tmp);
@@ -110,6 +139,7 @@ void MyStrategy::timeSlice40()
 		if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) {		// 导弹警告开始3秒后躲避
 			readActionByPro(0, 11);
 			//DoTacHeadEvade();
+			PrintState();
 			strcpy(outputData.EventDes, "掉头");
 			logEvent(outputData);
 		}
@@ -118,7 +148,7 @@ void MyStrategy::timeSlice40()
 		}
 	}
 	// 无法攻击，无需躲避时全速突进
-	if (mACRdrTarget.tgtCnt >= 0 &&	mACMslWarning.mslCnt ==0) {
+	if (mACRdrTarget.tgtCnt == 0 &&	mACMslWarning.mslCnt ==0) {
 		readActionByPro(0, 1);
 		//DoTacPointAtk();
 		strcpy(outputData.EventDes, "向敌方防线突围");
@@ -130,17 +160,20 @@ void MyStrategy::timeSlice40()
 		if (mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid) {
 			readActionByPro(1, 1);
 			//DoTacWpnShoot();
+			PrintState();
 			strcpy(outputData.EventDes, "武器发射");
 			logEvent(outputData);
 		}
 		if (mACFCCStatus.envInfos[1].FPoleValid || mACFCCStatus.envInfos[1].APoleValid) {
 			readActionByPro(1, 3);
 			//DoTacWpnShoot(1);
+			PrintState();
 			strcpy(outputData.EventDes,"武器发射");
 			logEvent(outputData);
 		} else {
 			readActionByPro(0, 2);
 			//DoTacToTar();
+			PrintState();
 			strcpy(outputData.EventDes, "向一架敌方飞机飞行");
 			logEvent(outputData);
 		}
@@ -148,11 +181,13 @@ void MyStrategy::timeSlice40()
 	if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt == 0) {
 		readActionByPro(0, 4);
 		//DoTacAltClimbP60();
+		PrintState();
 		strcpy(outputData.EventDes, "加60度上升");
 		logEvent(outputData);
 		if (mACFlightStatus.alt==4000) {
 			readActionByPro(0, 1);
 			//DoTacPointAtk();
+			PrintState();
 			strcpy(outputData.EventDes, "向敌方防线突袭");
 			logEvent(outputData);
 		}
@@ -180,22 +215,22 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-		if (watch(L".", "action1.csv", deal, &act)) {
+		if (watch(L".", LEAD_ACTION, deal, &act)) {
 			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();
 			return;
 		}
 		// TODO:收到action后的反馈
-		PrintStatus("state1.csv");
+		PrintStatus(LEAD_STATE);
 	} else {
-		if (watch(L".", "action2.csv", deal, &act)) {
+		if (watch(L".", WING_ACTION, deal, &act)) {
 			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();
 			return;
 		}
-		PrintStatus("state2.csv");
+		PrintStatus(WING_STATE);
 	}
 	return;
 }
@@ -203,16 +238,18 @@ void MyStrategy::readAction() {
 void MyStrategy::readActionByPro(int fin, int sin) { // 一二级索引
 	maneuver_i(fin, sin);
 #ifndef DEEP_LEARNING // 专家模式时输出动作
-	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-		FILE *fp = fopen("action1.csv", "w");
-		fprintf(fp, "%d, %d", fin, sin);
-		fclose(fp);
-	} else {
-		FILE *fp = fopen("action2.csv", "w");
-		fprintf(fp, "%d, %d", fin, sin);
-		fclose(fp);
+	if (mACRdrTarget.tgtCnt > 0) {
+		if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+			FILE *fp = fopen(LEAD_ACTION, "a");
+			fprintf(fp, "%d, %d\n", fin, sin);
+			fclose(fp);
+		} else {
+			FILE *fp = fopen(WING_ACTION, "a");
+			fprintf(fp, "%d, %d\n", fin, sin);
+			fclose(fp);
+		}
 	}
-#endif
+#endif // DEEP_LEARNING
 }
 
 #define POW2(x) (x) * (x)
@@ -221,9 +258,15 @@ double getTdAngle(const double vect1[3], const double vect2[3]) {
 	double vectDot = vect1[0] * vect2[0] + vect1[1] * vect2[1] + vect1[2] * vect2[2];
 	double vectMod1 = sqrt( POW2(vect1[0]) + POW2(vect1[1]) + POW2(vect1[2]) );
 	double vectMod2 = sqrt( POW2(vect2[0]) + POW2(vect2[1]) + POW2(vect2[2]) );
+	if (vectMod1 == 0 || vectMod2 == 0) return 0;
 	double cosValue = vectDot / (vectMod1 * vectMod2);
 	double rad = acos(cosValue);
 	return rad;
+}
+
+inline void MyStrategy::PrintState() {
+	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) PrintStatus(LEAD_STATE);
+	else PrintStatus(WING_STATE);
 }
 
 void MyStrategy::PrintStatus(const char * filename) {
@@ -233,27 +276,24 @@ void MyStrategy::PrintStatus(const char * filename) {
 	for (int i = 0; i < mCOMSLInGuide.flightMemCnt; ++i) {
 		nCoMslCnt += mCOMSLInGuide.memMSLInGuide[0].mslCnt;
 	}
-	FILE* fp = fopen(filename, "r");
-	if (fp == NULL) {
-		fclose(fp);
-		fp = fopen(filename, "w");
-	} else {
-		fclose(fp);
-		fp = fopen(filename, "a");
-	}
-	fprintf(fp, "[%d], %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d, %d, %d, %d, %d, %d\n",
+	FILE *fp = fopen(filename, "a");
+	fprintf(fp, "[%d], %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d, %d, %d, %d, %d, %d\n",
 		mACFlightStatus.timeCounter,						// [时标]
 		mACRdrTarget.tgtInfos[0].slantRange,				// 目标距离
 		mACFlightStatus.alt - mACRdrTarget.tgtInfos[0].alt, // 目标高度差
 		mACRdrTarget.tgtInfos[0].azGeo,						// 目标 地理系 方位角
 		mACRdrTarget.tgtInfos[0].sbsSpeed,					// 目标速度(m/s)
-		mCOFlightStatus.memFlightStatus[0].groundSpeed,		// 友机速度(m/s)
+		mCOFlightStatus.flightMemCnt ?
+		mCOFlightStatus.memFlightStatus[0].groundSpeed :	// 友机速度(m/s)
+		0,
+		mCOFlightStatus.flightMemCnt ?
 		sqrt( POW2(mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt) +
 		POW2((mACFlightStatus.lon - mCOFlightStatus.memFlightStatus[0].lon) * dis2Lons) +
-		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ),
-															// 友机距离
-		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt,
-															// 友机高度差
+		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ) :
+		DBL_MAX,											// 友机距离
+		mCOFlightStatus.flightMemCnt ?
+		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt :
+		DBL_MAX,											// 友机高度差
 		getTdAngle(mACFlightStatus.velNWU, mCOFlightStatus.memFlightStatus[0].velNWU),
 															// 友机速度矢量夹角
 		mACFlightStatus.groundSpeed,						// 本机速度
@@ -302,6 +342,7 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 		default:break;
 		}
 	}
+	PrintReward();
 }
 //向敌方防线飞行
 void MyStrategy::DoTacPointAtk()
@@ -783,12 +824,15 @@ int MyStrategy::OutputReward()
 void MyStrategy::PrintReward() {
 	int numberReward;
 	FILE* fp;
-	if((fp=fopen("reward.csv","a"))==NULL)
-	{
-		printf("failed open file");
-	} else {
+	if(mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+		fp = fopen(LEAD_REWARD, "a");
 		numberReward = OutputReward();
 		fprintf(fp,"%d\n",numberReward);
+		fclose(fp);
+	} else {
+		fp = fopen(WING_REWARD, "a");
+		numberReward = OutputReward();
+		fprintf(fp,"%d\n",numberReward);
+		fclose(fp);
 	}
-	fclose(fp);
 }

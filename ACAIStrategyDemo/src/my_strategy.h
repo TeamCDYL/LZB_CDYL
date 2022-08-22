@@ -210,6 +210,7 @@ private:
 	void readAction();
 
 	void readActionByPro(int fin, int sin); // 专家模式读取动作
+	void PrintState();
 	// 输出状态
 	void PrintStatus(const char * filename);
 
