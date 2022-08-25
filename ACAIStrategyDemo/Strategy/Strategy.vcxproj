@@ -33,6 +33,7 @@
     <ClCompile Include="..\src\my_strategy_io.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../../interface;../src;C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\src\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="my_action.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FD108313-CC9B-4377-A202-978B65A796B8}</ProjectGuid>
@@ -86,9 +87,9 @@
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)dist\</OutDir>
     <IntDir>$(Configuration)</IntDir>
-    <LibraryPath>..\src\libs;$(LibraryPath)</LibraryPath>
-    <IncludePath>..\src\include;$(IncludePath)</IncludePath>
-    <ReferencePath>..\src\libs;$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>

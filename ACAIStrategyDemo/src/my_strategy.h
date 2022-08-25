@@ -1,21 +1,24 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
 
+#include <math.h>
 #include "strategy_interface.h"
-#include <Python.h>
 #include "strategy_interface.h"
 #include "file_watcher.h"
-#include <math.h>
-
-extern "C"{
-__declspec(dllexport) int ffunc(int a, int b);
-}
+#include <set>
+using namespace std;
 
 extern int g_flight_state;	//飞机存活状态
 extern int g_cnt_state;		//导弹威胁状态
 extern int g_enmy_state;	//敌机数量状态
 extern int g_launch_state;	//我方发射导弹状态
 extern int g_guide_state;	//我方制导导弹状态
+
+/// \struct 解三角形结果
+struct TriSolveResult {
+	double angle;
+	double length;
+};
 
 /// \brief 策略实现Demo
 class MyStrategy : public CStrategy
@@ -53,9 +56,6 @@ public:
     const char* teamMembers() const;
 
 public:
-	//机动动作集调用
-	void maneuver_i(int fin,int sin );
-
     /// \brief 比赛开始处理函数
     /// \details 每局比赛开始时调用
     /// \param[in] pkConfig 比赛配置信息 \sa ACAI::PKConfig
@@ -141,9 +141,95 @@ public:
     /// \details 40ms周期线程
     void timeSlice40();
 
+	///---------------------------------------
+	/// \brief 机动动作集调用
+    /// \details 处理动作读取
+    /// \param[in] fin 动作类型索引 sin 动作索引
+	void maneuver_i(int fin,int sin );	
+
 private:
     /// \brief 初始化数据
     void initData();
+
+	/// \brief 判断是否脱战
+	/// \return 我方编队扫描到的敌机总数量
+	int GetTgtSum();
+
+	/// \brief 判断最近目标
+	/// \return 雷达探测信息
+	ACAI::ACRdrTarget::RdrTgtInfo GetNearestTgt();
+
+	/// \brief 解三角形
+	/// \return 方位角和斜距
+	TriSolveResult SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, ACAI::ACRdrTarget::RdrTgtInfo fRdrTgtInfo);
+
+	///---------------------------------------
+	/// \brief 向敌方防线飞行
+	void DoTacPointAtk();
+	/// \brief 向一架敌机飞行
+	void DoTacToTar();
+	/// \brief +30度加速爬升
+	void DoTacAltClimbP30();
+	/// \brief +60度加速爬升
+	void DoTacAltClimbP60();
+	/// \brief -30度下潜
+	void DoTacNoseDiveM30();
+	/// \brief -60度下潜
+	void DoTacNoseDiveM60();
+	/// \brief 蛇形机动
+	void DoTacStaHov();
+	/// \brief 左转偏置30
+	void DoTurnLeft30();
+	/// \brief 左转偏置60
+	void DoTurnLeft60();
+	/// \brief 右转偏置30
+	void DoTurnRight30();
+	/// \brief 右转偏置60 
+	void DoTurnRight60();
+	/// \brief 掉头
+	void DoTacHeadEvade();
+	/// \brief 回环
+	void DoTacCir();
+	/// \brief 掉头后30度下潜
+	void DoTurnEvad30();
+	/// \brief 掉头后60度下潜
+	void DoTurnEvad60();
+	/// \brief 左转向
+	void DoTurnLeft();
+	/// \brief 右转向
+	void DoTurnRight();
+	/// \brief 向前飞行
+	void DoTurnFor();
+	/// \brief 下落俯冲飞行
+	void DoTacNoseDive();
+
+	///---------------------------------------
+	/// \brief 武器发射
+	void DoTacWpnShoot(int m=0);
+	/// \brief 切换制导机
+	void SwitchGuideFlight();
+
+	///---------------------------------------
+	/// \brief 专家模式读取动作
+	void readActionByPro(int fin, int sin);
+
+	///---------------------------------------
+	/// \brief 输出状态
+	void PrintState();
+	/// \brief 输出状态
+	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt);
+
+	/// \brief 读取动作
+	void readAction();
+	
+	/// \brief 设定飞行状态
+	void SetFlightState(unsigned int flightID);
+	/// \brief 计算回报
+	int OutputReward();
+	/// \brief 输出回报
+	void PrintReward();
+
+	int m_lastWpnShootTimeCounter;			///< 距离上次发射武器时间
 
 private:
     ACAI::PKConfig mPKConfig;               ///< 比赛配置信息 \sa ACAI::PKConfig
@@ -161,72 +247,6 @@ private:
     ACAI::COFCCStatus mCOFCCStatus;         ///< 编队成员发射火控包线 \sa ACAI::COFCCStatus
     ACAI::COMSLInGuide mCOMSLInGuide;       ///< 编队成员制导武器信息 \sa ACAI::COMSLInGuide
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
-
-private:
-	//向敌方防线飞行
-	void DoTacPointAtk();
-	//向一架敌机飞行
-	void DoTacToTar();
-	//+30度加速爬升
-	void DoTacAltClimbP30();
-	//+60度加速爬升
-	void DoTacAltClimbP60();
-	//-30度下潜
-	void DoTacNoseDiveM30();
-	//-60度下潜
-	void DoTacNoseDiveM60();
-	//蛇形机动
-	void DoTacStaHov();
-	//左转偏置30
-	void DoTurnLeft30();
-	//左转偏置60
-	void DoTurnLeft60();
-	//右转偏置30
-	void DoTurnRight30();
-	//右转偏置60 
-	void DoTurnRight60();
-	//掉头
-	void DoTacHeadEvade();
-	//回环
-	void DoTacCir();
-	//掉头后30度下潜
-	void DoTurnEvad30();
-	//掉头后60度下潜
-	void DoTurnEvad60();
-
-
-
-	//左转向
-	void DoTurnLeft();
-	//右转向
-	void DoTurnRight();
-	//向前飞行
-	void DoTurnFor();
-	//下落俯冲飞行
-	void DoTacNoseDive();
-
-	//攻击动作集
-	//武器发射
-	void DoTacWpnShoot(int m=0);
-	//切换制导机
-	void SwitchGuideFlight();
-	void readActionByPro(int fin, int sin); // 专家模式读取动作
-	void PrintState();
-	// 输出状态
-	void PrintStatus(const char * filename);
-
-	// 动作读取
-	void readAction();
-	//
-	void SetFlightState(unsigned int flightID);
-	//奖赏函数
-	int OutputReward();
-	//打印出奖赏值
-	void PrintReward();
-
-	int m_lastWpnShootTimeCounter;
-
-
 };
 
 #endif // MY_STRATEGY_H
