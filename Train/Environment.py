@@ -31,10 +31,10 @@ ACTION_LIST = {
 }
 
 # 文件路径
-STATE_FILE = 'state_run.csv'
-ACTION_FILE = 'action_run.csv'
-REWARD_FILE = 'reward_run.csv'
-WATCH_PATH = 'E:/Project/LZB_611/train'  # 监控目录
+STATE_FILE = 'state1.csv'
+ACTION_FILE = 'action1.csv'
+REWARD_FILE = 'reward1.csv'
+WATCH_PATH = 'E:/Project/LZB_611/LZB_CDYL/ACAIStrategyDemo/dist'  # 监控目录
 
 
 # 插入监控器
@@ -87,7 +87,7 @@ class FileMonitorHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
             file_path = event.src_path
-            if file_path[-4:] == 'True':
+            if file_path[-4:] == 'true':
                 print('比赛终止')
                 global_var.set_value('done', True)
 
@@ -107,7 +107,7 @@ class ActionSpace(object):
     action_list = {}
     n = 0
 
-    def __init__(self, **action_list):
+    def __init__(self, action_list):
         self.action_list = action_list
         self.n = len(self.action_list)
 

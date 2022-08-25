@@ -41,5 +41,8 @@
     <ClCompile Include="..\src\file_watcher.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="my_action.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
