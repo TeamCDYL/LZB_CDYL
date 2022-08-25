@@ -1,16 +1,12 @@
 import time
 import csv
-import collections
 import numpy as np
-import pandas as pd
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from tensorflow.keras.models import load_model
 
 import global_var
 
 # 状态维度和动作集
-STATE_DIM = 14
+STATE_DIM = 16
 ACTION_LIST = {
     0: 'DoTacHeadEvade',
     1: 'DoTacPointAtk',
@@ -31,19 +27,10 @@ ACTION_LIST = {
 }
 
 # 文件路径
-STATE_FILE = 'state1.csv'
-ACTION_FILE = 'action1.csv'
-REWARD_FILE = 'reward1.csv'
-WATCH_PATH = 'E:/Project/LZB_611/LZB_CDYL/ACAIStrategyDemo/dist'  # 监控目录
-
-
-# 插入监控器
-def set_watchdog():
-    event_handler = FileMonitorHandler()
-    observer = Observer()
-    observer.schedule(event_handler, path=WATCH_PATH, recursive=True)  # recursive递归的
-    observer.start()
-    observer.join()
+STATE_FILE = r'../ACAIStrategyDemo/dist/state1.csv'
+ACTION_FILE = r'../ACAIStrategyDemo/dist/action1.csv'
+REWARD_FILE = r'../ACAIStrategyDemo/dist/reward1.csv'
+WATCH_PATH = r'../ACAIStrategyDemo/dist'  # 监控目录
 
 
 # 监控state变化
@@ -52,7 +39,7 @@ def monitor_state():
         reader = csv.reader(f)
         data = list(reader)
         state = data[-1]
-    state = np.array(list(map(int, state)), dtype=np.float32)
+    state = np.array(list(map(float, state)), dtype=np.float32)
     global_var.set_value('state', state)
     global_var.set_value('state_signal', True)
 
@@ -66,6 +53,14 @@ def monitor_reward():
     reward = int(reward)
     global_var.set_value('reward', reward)
     global_var.set_value('reward_signal', True)
+
+
+# action输出转换
+def action_transfer(action):
+    if action >= 14:
+        return '\n1,' + str(action - 13)
+    else:
+        return '\n0,' + str(action)
 
 
 # watchdog文件监控器重写
@@ -87,9 +82,16 @@ class FileMonitorHandler(FileSystemEventHandler):
     def on_created(self, event):
         if not event.is_directory:
             file_path = event.src_path
-            if file_path[-4:] == 'true':
+            if file_path[-3:] == 'end':
                 print('比赛终止')
                 global_var.set_value('done', True)
+                global_var.set_value('race_state', 'end')
+            if file_path[-5:] == 'fight':
+                print('作战状态')
+                global_var.set_value('race_state', 'fight')
+            if file_path[-8:] == 'outfight':
+                print('脱战状态')
+                global_var.set_value('race_state', 'outfight')
 
 
 class StateSpace(object):
@@ -126,15 +128,16 @@ class Env(object):
     # 环境更新
     def step(self, action):
         with open(ACTION_FILE, "a") as f:
-            f.write('\n' + action)
+            f.write(action_transfer(action))
+        print('采取行动为：' + ACTION_LIST[action])
 
         while not global_var.get_value('state_signal'):
-            time.sleep(0.01)
+            time.sleep(0.001)
         self.state = global_var.get_value('state')
         global_var.set_value('state_signal', False)
 
         while not global_var.get_value('reward_signal'):
-            time.sleep(0.01)
+            time.sleep(0.001)
         reward = global_var.get_value('reward')
         global_var.set_value('reward_state', False)
 
@@ -144,10 +147,11 @@ class Env(object):
 
     # 环境重置
     def reset(self):
+        while global_var.get_value('race_state') != 'fight':
+            time.sleep(0.01)
         with open(STATE_FILE, "r") as f:
             reader = csv.reader(f)
             data = list(reader)
-            state = data[0]
-        self.state = np.array(list(map(int, state)), dtype=np.float32)
-        set_watchdog()
+            state = data[1]
+        self.state = np.array(list(map(float, state[1:])), dtype=np.float32)
         return self.state

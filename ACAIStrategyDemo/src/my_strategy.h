@@ -1,5 +1,6 @@
 #ifndef MY_STRATEGY_H
 #define MY_STRATEGY_H
+#define DEEP_LEARNING
 
 #include <math.h>
 #include "strategy_interface.h"
@@ -13,6 +14,7 @@ extern int g_cnt_state;		//导弹威胁状态
 extern int g_enmy_state;	//敌机数量状态
 extern int g_launch_state;	//我方发射导弹状态
 extern int g_guide_state;	//我方制导导弹状态
+extern bool g_fight_init;
 
 /// \struct 解三角形结果
 struct TriSolveResult {

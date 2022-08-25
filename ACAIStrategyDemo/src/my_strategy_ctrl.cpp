@@ -1,5 +1,7 @@
 #include "my_strategy.h"
 #include "string.h"
+#include <iostream>
+using namespace std;
 
 #define LEAD_STATE "state1.csv"
 #define WING_STATE "state2.csv"
@@ -8,7 +10,7 @@
 #define LEAD_REWARD "reward1.csv"
 #define WING_REWARD "reward2.csv"
 
-const char * ActionTitle = "action first index, action second index\n";
+const char * ActionTitle = "action first index, action second index";
 const char * StateTitle = "[time counter], distance to enemy, alt distance to enemy, "
 						"direction to enemy, enemy speed, friend speed, "
 						"distance to friend, alt distance to friend, speed direct to friend, "
@@ -24,47 +26,27 @@ int g_cnt_state;	///< 导弹威胁状态
 int g_enmy_state;	///< 敌机数量状态
 int g_launch_state;	///< 我方发射导弹状态
 int g_guide_state;	///< 我方制导导弹状态
+bool g_fight_init;
 
 /// \brief 比赛开始时执行
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
+	initData();
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
-	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-		FILE *tmp = fopen(LEAD_STATE, "w"); // 清空文件内容
-		fprintf(tmp, StateTitle);			// 文件表头
-		fclose(tmp);
-		tmp = fopen(LEAD_ACTION, "w");
-		fprintf(tmp, ActionTitle);
-		fclose(tmp);
-		tmp = fopen(LEAD_REWARD, "w");
-		fprintf(tmp, RewardTitle);
-		fclose(tmp);
-		//PrintStatus(LEAD_STATE, GetNearestTgt());
-	} else {
-		FILE *tmp = fopen(WING_STATE, "w"); // 清空文件内容
-		fprintf(tmp, StateTitle);			// 文件表头
-		fclose(tmp);
-		tmp = fopen(WING_ACTION, "w");
-		fprintf(tmp, ActionTitle);
-		fclose(tmp);
-		tmp = fopen(WING_REWARD, "w");
-		fprintf(tmp, RewardTitle);
-		fclose(tmp);
-		//PrintStatus(WING_STATE, GetNearestTgt());
-	}
-	PrintReward();
-	FILE *tmp = fopen("false", "w"); // 标志对战开始
+	FILE *tmp = fopen("outfight", "w"); // 标志对战开始
 	fclose(tmp);
-	remove("true");
+	remove("end");
+	g_fight_init = false;
 }
 
 /// \brief 比赛结束时执行 
 void MyStrategy::onPKEnd()
 {
 	initData();
-	FILE *tmp = fopen("true", "w"); // 标志对战结束
+	FILE *tmp = fopen("end", "w"); // 标志对战结束
 	fclose(tmp);
-	remove("false");
+	remove("outfight");
+	remove("fight");
 }
 
 void MyStrategy::onPKOut(unsigned int flightID)
@@ -79,7 +61,40 @@ void MyStrategy::backGround()
 
 void MyStrategy::timeSlice20()
 {
-    // TODO : 此处添加用户代码执行20ms周期任务
+	if (GetTgtSum() > 0) {
+		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
+		fclose(tmp);
+		remove("outfight");
+		if (g_fight_init == false) {
+			g_fight_init = true;
+		    if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+				FILE *tmp = fopen(LEAD_STATE, "w"); // 清空文件内容
+				fprintf(tmp, StateTitle);			// 文件表头
+				fclose(tmp);
+				tmp = fopen(LEAD_ACTION, "w");
+				fprintf(tmp, ActionTitle);
+				fclose(tmp);
+				tmp = fopen(LEAD_REWARD, "w");
+				fprintf(tmp, RewardTitle);
+				fclose(tmp);
+			} else {
+				FILE *tmp = fopen(WING_STATE, "w"); // 清空文件内容
+				fprintf(tmp, StateTitle);			// 文件表头
+				fclose(tmp);
+				tmp = fopen(WING_ACTION, "w");
+				fprintf(tmp, ActionTitle);
+				fclose(tmp);
+				tmp = fopen(WING_REWARD, "w");
+				fprintf(tmp, RewardTitle);
+				fclose(tmp);
+			}
+		}
+	}
+	else {
+		FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
+		fclose(tmp);
+		remove("fight");
+	}
 }
 
 bool inRange(double angle, double range) {
@@ -135,6 +150,8 @@ void MyStrategy::timeSlice40()
 		}
 		sendFlyControlCmd(cmd);
 
+		if (!(GetTgtSum() > 0))
+			DoTacPointAtk();
 
 #ifdef DEEP_LEARNING	// 深度学习时读取动作
 		readAction(); 
@@ -233,7 +250,7 @@ struct Action {
 void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy类里
 	FILE* fp = fopen(filename, "r");
 	int fin, sin; // 一级索引，二级索引
-	fscanf(fp, "%d %d", &fin, &sin);
+	fscanf(fp, "%d,%d", &fin, &sin);
 	fclose(fp);
 	struct Action* act = (struct Action*) lParam;
 	act->fin = fin;
@@ -245,6 +262,8 @@ void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		if (watch(L".", LEAD_ACTION, deal, &act)) {
+			cout << act.fin << endl;
+			cout << act.sin << endl;
 			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();

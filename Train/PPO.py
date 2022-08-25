@@ -4,8 +4,10 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 import scipy.signal
+from watchdog.observers import Observer
 
-from Environment import Env
+from Environment import Env, WATCH_PATH
+from Environment import FileMonitorHandler
 import global_var
 
 
@@ -185,6 +187,7 @@ if __name__ == "__main__":
     global_var.set_value('done', False)
     global_var.set_value('state_signal', False)
     global_var.set_value('reward_signal', False)
+    global_var.set_value('race_state', 'wait')
 
     # 初始化环境 获取状态空间(state)的维度和动作(action)数量
     env = Env()
@@ -205,9 +208,16 @@ if __name__ == "__main__":
     policy_optimizer = keras.optimizers.Adam(learning_rate=policy_learning_rate)
     value_optimizer = keras.optimizers.Adam(learning_rate=value_function_learning_rate)
 
+    # 插入监控器
+    event_handler = FileMonitorHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=WATCH_PATH, recursive=True)  # recursive递归的
+    observer.start()
+
     # 初始化状态(state) 剧集返回值 剧集长度
     observation, episode_return, episode_length = env.reset(), 0, 0
 
+    print(observation)
     """
     训练
     """
@@ -275,3 +285,5 @@ if __name__ == "__main__":
         print(
             f" Epoch: {epoch + 1}. Mean Return: {sum_return / num_episodes}. Mean Length: {sum_length / num_episodes}"
         )
+
+    observer.join()
