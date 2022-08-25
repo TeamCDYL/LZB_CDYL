@@ -4,3 +4,4 @@ interface/
 *.sln
 *.sdf
 *.pdb
+*.ipch

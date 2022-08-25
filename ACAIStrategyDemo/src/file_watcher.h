@@ -5,6 +5,6 @@
 
 typedef void (*LPFileDeal) (const char*, LPVOID); // 文件改变回调函数
 
-bool watch(LPCTSTR dir, const char* filename, LPFileDeal lpFileDeal, LPVOID lParam); // 监听文件
+bool watch(const char* filename, LPFileDeal lpFileDeal, LPVOID lParam); // 监听文件
 
 #endif
