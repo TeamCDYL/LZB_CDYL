@@ -9,6 +9,7 @@ using namespace std;
 #define WING_ACTION "action2.csv"
 #define LEAD_REWARD "reward1.csv"
 #define WING_REWARD "reward2.csv"
+#define MAX_DIS 50000
 
 const char * ActionTitle = "action first index, action second index";
 const char * StateTitle = "[time counter], distance to enemy, alt distance to enemy, "
@@ -77,6 +78,7 @@ void MyStrategy::timeSlice20()
 				tmp = fopen(LEAD_REWARD, "w");
 				fprintf(tmp, RewardTitle);
 				fclose(tmp);
+				PrintStatus(LEAD_STATE, GetNearestTgt());
 			} else {
 				FILE *tmp = fopen(WING_STATE, "w"); // 清空文件内容
 				fprintf(tmp, StateTitle);			// 文件表头
@@ -87,6 +89,7 @@ void MyStrategy::timeSlice20()
 				tmp = fopen(WING_REWARD, "w");
 				fprintf(tmp, RewardTitle);
 				fclose(tmp);
+				PrintStatus(WING_STATE, GetNearestTgt());
 			}
 		}
 	}
@@ -107,49 +110,49 @@ void MyStrategy::timeSlice40()
 {
 	timecounter++;
 	testcounter++;
+	ACAI::EventLog outputData;
+	memset(&outputData, 0, sizeof(outputData));
+
+	//规则
+
+	double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
+	double LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
+	double LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
+	double HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10.0;
+	double LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10.0;
+	double LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10.0;
+
+	ACAI::FlyControlCmd cmd;
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.desireAlt = mACFlightStatus.alt;
+	if (mACFlightStatus.alt < mPKConfig.MinFlyHeight + HeightEdge) {
+		cmd.navCtrlCmd = true;
+		cmd.desireNavAlt = mPKConfig.MaxFlyHeight - HeightCorrect;
+	} else if (mACFlightStatus.alt > mPKConfig.MaxFlyHeight - HeightEdge) {
+		cmd.desireNavAlt = mPKConfig.MinFlyHeight + HeightCorrect;
+		cmd.navCtrlCmd = true;
+	}
+
+	cmd.desireNavLon = mACFlightStatus.lon;
+	if (mACFlightStatus.lon > mPKConfig.RightUpLon - LonEdge) {
+		cmd.desireNavLon = mPKConfig.RightUpLon - LonCorrect;
+		cmd.navCtrlCmd = true;
+	} else if (mACFlightStatus.lon < mPKConfig.LeftDownLon + LonEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLon + LonCorrect;
+		cmd.navCtrlCmd = true;
+	}
+
+	cmd.desireNavLat = mACFlightStatus.lat;
+	if (mACFlightStatus.lat > mPKConfig.RightUpLat - LatEdge) {
+		cmd.desireNavLat = mPKConfig.RightUpLat - LatCorrect;
+		cmd.navCtrlCmd = true;
+	} else if (mACFlightStatus.lat < mPKConfig.LeftDownLat + LatEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLat + LatCorrect;
+		cmd.navCtrlCmd = true;
+	}
+	sendFlyControlCmd(cmd);
 	if ((timecounter%9)==0)
 	{
-		ACAI::EventLog outputData;
-		memset(&outputData, 0, sizeof(outputData));
-		//规则
-
-		double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
-		double LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
-		double LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
-		double HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10.0;
-		double LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10.0;
-		double LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10.0;
-
-		ACAI::FlyControlCmd cmd;
-		memset(&cmd, 0, sizeof(cmd));
-		cmd.desireAlt = mACFlightStatus.alt;
-		if (mACFlightStatus.alt < mPKConfig.MinFlyHeight + HeightEdge) {
-			cmd.navCtrlCmd = true;
-			cmd.desireNavAlt = mPKConfig.MaxFlyHeight - HeightCorrect;
-		} else if (mACFlightStatus.alt > mPKConfig.MaxFlyHeight - HeightEdge) {
-			cmd.desireNavAlt = mPKConfig.MinFlyHeight + HeightCorrect;
-			cmd.navCtrlCmd = true;
-		}
-
-		cmd.desireNavLon = mACFlightStatus.lon;
-		if (mACFlightStatus.lon > mPKConfig.RightUpLon - LonEdge) {
-			cmd.desireNavLon = mPKConfig.RightUpLon - LonCorrect;
-			cmd.navCtrlCmd = true;
-		} else if (mACFlightStatus.lon < mPKConfig.LeftDownLon + LonEdge) {
-			cmd.desireNavLat = mPKConfig.LeftDownLon + LonCorrect;
-			cmd.navCtrlCmd = true;
-		}
-
-		cmd.desireNavLat = mACFlightStatus.lat;
-		if (mACFlightStatus.lat > mPKConfig.RightUpLat - LatEdge) {
-			cmd.desireNavLat = mPKConfig.RightUpLat - LatCorrect;
-			cmd.navCtrlCmd = true;
-		} else if (mACFlightStatus.lat < mPKConfig.LeftDownLat + LatEdge) {
-			cmd.desireNavLat = mPKConfig.LeftDownLat + LatCorrect;
-			cmd.navCtrlCmd = true;
-		}
-		sendFlyControlCmd(cmd);
-
 		if (!(GetTgtSum() > 0))
 			DoTacPointAtk();
 
@@ -264,8 +267,6 @@ void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		if (watch(L".", LEAD_ACTION, deal, &act)) {
-			cout << act.fin << endl;
-			cout << act.sin << endl;
 			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();
@@ -346,10 +347,10 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 		sqrt( POW2(mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt) +
 		POW2((mACFlightStatus.lon - mCOFlightStatus.memFlightStatus[0].lon) * dis2Lons) +
 		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ) :
-		DBL_MAX,											// 友机距离
+		MAX_DIS,											// 友机距离
 		mCOFlightStatus.flightMemCnt ?
 		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt :
-		DBL_MAX,											// 友机高度差
+		MAX_DIS,											// 友机高度差
 		getTdAngle(mACFlightStatus.velNWU, mCOFlightStatus.memFlightStatus[0].velNWU),
 															// 友机速度矢量夹角
 		mACFlightStatus.groundSpeed,						// 本机速度
@@ -508,6 +509,9 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 				return tgtInfoTemp1;
 		}
 	}
+	ACAI::ACRdrTarget::RdrTgtInfo tgtInfoTemp;
+	memset(&tgtInfoTemp, 0, sizeof(tgtInfoTemp));
+	return tgtInfoTemp;
 }
 
 TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, ACAI::ACRdrTarget::RdrTgtInfo fRdrTgtInfo) {
