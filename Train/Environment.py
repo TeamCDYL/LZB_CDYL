@@ -1,6 +1,7 @@
 import time
 import csv
 import numpy as np
+import pandas as pd
 from watchdog.events import FileSystemEventHandler
 
 import global_var
@@ -35,24 +36,20 @@ WATCH_PATH = r'../ACAIStrategyDemo/dist'  # 监控目录
 
 # 监控state变化
 def monitor_state():
-    with open(STATE_FILE, "r") as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        state = data[-1]
-    state = np.array(list(map(float, state)), dtype=np.float32)
-    global_var.set_value('state', state)
-    global_var.set_value('state_signal', True)
+    data = pd.read_csv(STATE_FILE)
+    state = data.iloc[-1]
+    state = np.array(list(map(float, state[1:])), dtype=np.float32)
+    print('state: %s', state)
+    return state
 
 
 # 监控reward变化
 def monitor_reward():
-    with open(REWARD_FILE, "r") as f:
-        reader = csv.reader(f)
-        data = list(reader)
-        reward = data[-1]
+    data = pd.read_csv(REWARD_FILE)
+    reward = data.iloc[-1]
     reward = int(reward)
-    global_var.set_value('reward', reward)
-    global_var.set_value('reward_signal', True)
+    print('reward: %s', reward)
+    return reward
 
 
 # action输出转换
@@ -72,12 +69,12 @@ class FileMonitorHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if not event.is_directory:
             file_path = event.src_path
-            if file_path[-13:] == 'state_run.csv':
+            if file_path[-10:] == 'state1.csv':
                 print("state更新: %s " % file_path)
-                monitor_state()
-            if file_path[-14:] == 'reward_run.csv':
+                global_var.set_value('state_signal', True)
+            if file_path[-11:] == 'reward1.csv':
                 print("reward更新: %s " % file_path)
-                monitor_reward()
+                global_var.set_value('reward_signal', True)
 
     def on_created(self, event):
         if not event.is_directory:
@@ -129,19 +126,21 @@ class Env(object):
     def step(self, action):
         with open(ACTION_FILE, "a") as f:
             f.write(action_transfer(action))
-        print('采取行动为：' + ACTION_LIST[action])
+            f.flush()
 
         while not global_var.get_value('state_signal'):
-            time.sleep(0.001)
-        self.state = global_var.get_value('state')
+            time.sleep(0.01)
+        self.state = monitor_state()
         global_var.set_value('state_signal', False)
 
         while not global_var.get_value('reward_signal'):
-            time.sleep(0.001)
-        reward = global_var.get_value('reward')
+            time.sleep(0.01)
+        reward = monitor_reward()
         global_var.set_value('reward_state', False)
 
         done = global_var.get_value('done')
+
+        print('采取行动为：' + str(ACTION_LIST[action]) + '    回报为：' + str(reward))
 
         return self.state, reward, done, {}
 
@@ -149,9 +148,7 @@ class Env(object):
     def reset(self):
         while global_var.get_value('race_state') != 'fight':
             time.sleep(0.01)
-        with open(STATE_FILE, "r") as f:
-            reader = csv.reader(f)
-            data = list(reader)
-            state = data[1]
+        data = pd.read_csv(STATE_FILE)
+        state = data.iloc[0]
         self.state = np.array(list(map(float, state[1:])), dtype=np.float32)
         return self.state
