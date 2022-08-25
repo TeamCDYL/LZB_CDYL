@@ -15,14 +15,14 @@ import global_var
 训练参数
 """
 
-steps_per_epoch = 10
+steps_per_epoch = 30
 epochs = 1
 gamma = 0.99
 clip_ratio = 0.2
 policy_learning_rate = 3e-4
 value_function_learning_rate = 1e-3
-train_policy_iterations = 80
-train_value_iterations = 80
+train_policy_iterations = 5
+train_value_iterations = 5
 lam = 0.97
 target_kl = 0.01
 hidden_sizes = (128, 64, 16)
@@ -85,6 +85,8 @@ class Buffer(object):
             np.mean(self.advantage_buffer),
             np.std(self.advantage_buffer),
         )
+        if advantage_std == 0:
+            advantage_std = 1
         self.advantage_buffer = (self.advantage_buffer - advantage_mean) / advantage_std
         return (
             self.observation_buffer,
@@ -156,6 +158,7 @@ def train_policy(observation_buffer, action_buffer, log_probability_buffer, adva
         )
     policy_grads = tape.gradient(policy_loss, actor.trainable_variables)
     policy_optimizer.apply_gradients(zip(policy_grads, actor.trainable_variables))
+    # print("policy_function_loss: " + policy_loss)
 
     kl = tf.reduce_mean(
         log_probability_buffer
@@ -172,6 +175,7 @@ def train_value_function(observation_buffer, return_buffer):
         value_loss = tf.reduce_mean((return_buffer - critic(observation_buffer)) ** 2)
     value_grads = tape.gradient(value_loss, critic.trainable_variables)
     value_optimizer.apply_gradients(zip(value_grads, critic.trainable_variables))
+    # print("value function loss: " + value_loss)
 
 
 if __name__ == "__main__":
@@ -182,8 +186,6 @@ if __name__ == "__main__":
 
     # 初始化全局变量
     global_var._init()
-    global_var.set_value('state', None)
-    global_var.set_value('reward', None)
     global_var.set_value('done', False)
     global_var.set_value('state_signal', False)
     global_var.set_value('reward_signal', False)
@@ -216,8 +218,6 @@ if __name__ == "__main__":
 
     # 初始化状态(state) 剧集返回值 剧集长度
     observation, episode_return, episode_length = env.reset(), 0, 0
-
-    print(observation)
     """
     训练
     """

@@ -15,7 +15,7 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 		case 4: DoTacAltClimbP60();break;
 		case 5: DoTacNoseDiveM30();break;
 		case 6:	DoTacNoseDiveM60();break;
-		case 7: DoTacStaHov();break;
+		//case 7: DoTacStaHov();break;
 		case 8: DoTurnLeft30();break;
 		case 9: DoTurnLeft60();break;
 		case 10: DoTurnRight30();break;
@@ -74,7 +74,7 @@ void MyStrategy::DoTacToTar()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData.desireHead =mACRdrTarget.tgtInfos[0].azGeo;
 	sendFlyControlCmd(outputData);
-	cout << "向敌方防线飞行" << endl;
+	cout << "向一架敌机飞行" << endl;
 }
 
 /// \brief +30度加速爬升
