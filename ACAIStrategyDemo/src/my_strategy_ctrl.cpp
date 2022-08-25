@@ -250,6 +250,8 @@ struct Action {
 void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy类里
 	FILE* fp = fopen(filename, "r");
 	int fin, sin; // 一级索引，二级索引
+	fseek(fp, -6, SEEK_END);
+	while (fgetc(fp) != 10);
 	fscanf(fp, "%d,%d", &fin, &sin);
 	fclose(fp);
 	struct Action* act = (struct Action*) lParam;
