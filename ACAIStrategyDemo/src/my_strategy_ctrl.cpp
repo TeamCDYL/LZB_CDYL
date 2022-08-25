@@ -6,6 +6,7 @@ int g_cnt_state;		//导弹威胁状态
 int g_enmy_state;	//敌机数量状态
 int g_launch_state;	//我方发射导弹状态
 int g_guide_state;	//我方制导导弹状态
+static int flightID=1;
 
 #define LEAD_STATE "state1.csv"
 #define WING_STATE "state2.csv"
@@ -669,17 +670,19 @@ void MyStrategy::SwitchGuideFlight() {
 	memset(&outputData, 0, sizeof(outputData));
 	if (mACFlightStatus.flightTeam==ACAI::V_FLIGHT_TEAM_RED)
 	{
-		int array[4]={0,1,2,1};
-		outputData.launchPlaneID = array[mACFlightStatus.flightID+1]; ///< 发射机编号
-		outputData.guidePlaneID	 = array[mACFlightStatus.flightID+1];  ///< 制导机编号
+		flightID++;
+		int array[2]={2,1}
+		outputData.launchPlaneID = array[flightID%2]; ///< 发射机编号
+		outputData.guidePlaneID	 = array[flightID%2];  ///< 制导机编号
 		outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;  ///< 导弹目标编号
 		outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
 		sendWpnControlCmd(outputData);
 	}
 	else{
-		int arra[4]={0,0,4,3};
-		outputData.launchPlaneID = arra[mACFlightStatus.flightID-3]; ///< 发射机编号
-		outputData.guidePlaneID	 = arra[mACFlightStatus.flightID-3];  ///< 制导机编号
+		flightID++;
+		int arra[3]={4,3};
+		outputData.launchPlaneID = arra[flightID%4]; ///< 发射机编号
+		outputData.guidePlaneID	 = arra[flightID%4];  ///< 制导机编号
 		outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;  ///< 导弹目标编号
 		outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
 		sendWpnControlCmd(outputData);
