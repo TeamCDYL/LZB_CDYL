@@ -33,7 +33,7 @@ bool g_fight_init;
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
 	initData();
-    memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
+    	memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
 	FILE *tmp = fopen("outfight", "w"); // 标志对战开始
 	fclose(tmp);
 	remove("end");
