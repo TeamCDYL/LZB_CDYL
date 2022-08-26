@@ -266,13 +266,9 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-<<<<<<< HEAD
 		if (watch(LEAD_ACTION, deal, &act)) {
 			cout << act.fin << endl;
 			cout << act.sin << endl;
-=======
-		if (watch(L".", LEAD_ACTION, deal, &act)) {
->>>>>>> fe3003d6c801a85b1e6205ee21fca5cf28c331b5
 			maneuver_i(act.fin, act.sin);
 		} else { // 监听期间文件未发生改变
 			DoTacHeadEvade();
