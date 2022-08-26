@@ -30,26 +30,19 @@ ACTION_LIST = {
 # 文件路径
 STATE_FILE = r'../ACAIStrategyDemo/dist/state1.csv'
 ACTION_FILE = r'../ACAIStrategyDemo/dist/action1.csv'
-REWARD_FILE = r'../ACAIStrategyDemo/dist/reward1.csv'
 WATCH_PATH = r'../ACAIStrategyDemo/dist'  # 监控目录
 
 
-# 监控state变化
+# 监控state变化(reward追加至最后一列)
 def monitor_state():
     data = pd.read_csv(STATE_FILE)
     state = data.iloc[-1]
     state = np.array(list(map(float, state[1:])), dtype=np.float32)
-    print('state: %s', state)
-    return state
-
-
-# 监控reward变化
-def monitor_reward():
-    data = pd.read_csv(REWARD_FILE)
-    reward = data.iloc[-1]
-    reward = int(reward)
-    print('reward: %s', reward)
-    return reward
+    reward = state[-1]
+    state = state[:-1]
+    print('state: ', state)
+    print('reward: ', reward)
+    return state, reward
 
 
 # action输出转换
@@ -70,11 +63,11 @@ class FileMonitorHandler(FileSystemEventHandler):
         if not event.is_directory:
             file_path = event.src_path
             if file_path[-10:] == 'state1.csv':
-                print("state更新: %s " % file_path)
-                global_var.set_value('state_signal', True)
-            if file_path[-11:] == 'reward1.csv':
-                print("reward更新: %s " % file_path)
-                global_var.set_value('reward_signal', True)
+                global_var.set_value('count', global_var.get_value('count') + 1)
+                if global_var.get_value('count') == 2:
+                    global_var.set_value('count', 0)
+                    print("state更新: %s " % file_path)
+                    global_var.set_value('state_signal', True)
 
     def on_created(self, event):
         if not event.is_directory:
@@ -130,13 +123,8 @@ class Env(object):
 
         while not global_var.get_value('state_signal'):
             time.sleep(0.01)
-        self.state = monitor_state()
+        self.state, reward = monitor_state()
         global_var.set_value('state_signal', False)
-
-        while not global_var.get_value('reward_signal'):
-            time.sleep(0.01)
-        reward = monitor_reward()
-        global_var.set_value('reward_state', False)
 
         done = global_var.get_value('done')
 
@@ -150,5 +138,5 @@ class Env(object):
             time.sleep(0.01)
         data = pd.read_csv(STATE_FILE)
         state = data.iloc[0]
-        self.state = np.array(list(map(float, state[1:])), dtype=np.float32)
+        self.state = np.array(list(map(float, state[1:-1])), dtype=np.float32)
         return self.state
