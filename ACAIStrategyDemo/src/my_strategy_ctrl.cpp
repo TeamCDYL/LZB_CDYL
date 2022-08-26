@@ -22,29 +22,29 @@ const char * RewardTitle = "reward\n";
 static int timecounter=0;
 static int testcounter=0;
 
-int g_flight_state;	///< ·É»ú´æ»î×´Ì¬
-int g_cnt_state;	///< µ¼µ¯ÍşĞ²×´Ì¬
-int g_enmy_state;	///< µĞ»úÊıÁ¿×´Ì¬
-int g_launch_state;	///< ÎÒ·½·¢Éäµ¼µ¯×´Ì¬
-int g_guide_state;	///< ÎÒ·½ÖÆµ¼µ¼µ¯×´Ì¬
+int g_flight_state;	///< é£æœºå­˜æ´»çŠ¶æ€
+int g_cnt_state;	///< å¯¼å¼¹å¨èƒçŠ¶æ€
+int g_enmy_state;	///< æ•Œæœºæ•°é‡çŠ¶æ€
+int g_launch_state;	///< æˆ‘æ–¹å‘å°„å¯¼å¼¹çŠ¶æ€
+int g_guide_state;	///< æˆ‘æ–¹åˆ¶å¯¼å¯¼å¼¹çŠ¶æ€
 bool g_fight_init;
 
-/// \brief ±ÈÈü¿ªÊ¼Ê±Ö´ĞĞ
+/// \brief æ¯”èµ›å¼€å§‹æ—¶æ‰§è¡Œ
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
 	initData();
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
-	FILE *tmp = fopen("outfight", "w"); // ±êÖ¾¶ÔÕ½¿ªÊ¼
+	FILE *tmp = fopen("outfight", "w"); // æ ‡å¿—å¯¹æˆ˜å¼€å§‹
 	fclose(tmp);
 	remove("end");
 	g_fight_init = false;
 }
 
-/// \brief ±ÈÈü½áÊøÊ±Ö´ĞĞ 
+/// \brief æ¯”èµ›ç»“æŸæ—¶æ‰§è¡Œ 
 void MyStrategy::onPKEnd()
 {
 	initData();
-	FILE *tmp = fopen("end", "w"); // ±êÖ¾¶ÔÕ½½áÊø
+	FILE *tmp = fopen("end", "w"); // æ ‡å¿—å¯¹æˆ˜ç»“æŸ
 	fclose(tmp);
 	remove("outfight");
 	remove("fight");
@@ -57,20 +57,20 @@ void MyStrategy::onPKOut(unsigned int flightID)
 
 void MyStrategy::backGround()
 {
-    // TODO : ´Ë´¦Ìí¼ÓÓÃ»§´úÂëÖ´ĞĞºóÌ¨ÈÎÎñ
+    // TODO : æ­¤å¤„æ·»åŠ ç”¨æˆ·ä»£ç æ‰§è¡Œåå°ä»»åŠ¡
 }
 
 void MyStrategy::timeSlice20()
 {
 	if (GetTgtSum() > 0) {
-		FILE *tmp = fopen("fight", "w"); // ±êÖ¾½øÈë×÷Õ½×´Ì¬
+		FILE *tmp = fopen("fight", "w"); // æ ‡å¿—è¿›å…¥ä½œæˆ˜çŠ¶æ€
 		fclose(tmp);
 		remove("outfight");
 		if (g_fight_init == false) {
 			g_fight_init = true;
 		    if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-				FILE *tmp = fopen(LEAD_STATE, "w"); // Çå¿ÕÎÄ¼şÄÚÈİ
-				fprintf(tmp, StateTitle);			// ÎÄ¼ş±íÍ·
+				FILE *tmp = fopen(LEAD_STATE, "w"); // æ¸…ç©ºæ–‡ä»¶å†…å®¹
+				fprintf(tmp, StateTitle);			// æ–‡ä»¶è¡¨å¤´
 				fclose(tmp);
 				tmp = fopen(LEAD_ACTION, "w");
 				fprintf(tmp, ActionTitle);
@@ -80,8 +80,8 @@ void MyStrategy::timeSlice20()
 				fclose(tmp);
 				PrintStatus(LEAD_STATE, GetNearestTgt());
 			} else {
-				FILE *tmp = fopen(WING_STATE, "w"); // Çå¿ÕÎÄ¼şÄÚÈİ
-				fprintf(tmp, StateTitle);			// ÎÄ¼ş±íÍ·
+				FILE *tmp = fopen(WING_STATE, "w"); // æ¸…ç©ºæ–‡ä»¶å†…å®¹
+				fprintf(tmp, StateTitle);			// æ–‡ä»¶è¡¨å¤´
 				fclose(tmp);
 				tmp = fopen(WING_ACTION, "w");
 				fprintf(tmp, ActionTitle);
@@ -94,7 +94,7 @@ void MyStrategy::timeSlice20()
 		}
 	}
 	else {
-		FILE *tmp = fopen("outfight", "w"); // ±êÖ¾½øÈëÍÑÕ½×´Ì¬
+		FILE *tmp = fopen("outfight", "w"); // æ ‡å¿—è¿›å…¥è„±æˆ˜çŠ¶æ€
 		fclose(tmp);
 		remove("fight");
 	}
@@ -105,7 +105,7 @@ bool inRange(double angle, double range) {
 		(PI - angle <= range && PI - angle >= -range);
 }
 
-/// \brief 40msÏß³Ì
+/// \brief 40msçº¿ç¨‹
 void MyStrategy::timeSlice40()
 {
 	timecounter++;
@@ -113,7 +113,7 @@ void MyStrategy::timeSlice40()
 	ACAI::EventLog outputData;
 	memset(&outputData, 0, sizeof(outputData));
 
-	//¹æÔò
+	//è§„åˆ™
 
 	double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
 	double LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
@@ -156,29 +156,29 @@ void MyStrategy::timeSlice40()
 		if (!(GetTgtSum() > 0))
 			DoTacPointAtk();
 
-#ifdef DEEP_LEARNING	// Éî¶ÈÑ§Ï°Ê±¶ÁÈ¡¶¯×÷
+#ifdef DEEP_LEARNING	// æ·±åº¦å­¦ä¹ æ—¶è¯»å–åŠ¨ä½œ
 		readAction(); 
 #endif
 
-#ifndef DEEP_LEARNING // ×¨¼ÒÄ£Ê½Ê±Ö´ĞĞ¶¯×÷
-		//µ¥»úÕ½Êõ
+#ifndef DEEP_LEARNING // ä¸“å®¶æ¨¡å¼æ—¶æ‰§è¡ŒåŠ¨ä½œ
+		//å•æœºæˆ˜æœ¯
 		static int mslWarningStartTime = 0;
 		if (mACMslWarning.mslCnt > 0) {	
-			if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) {		// µ¼µ¯¾¯¸æ¿ªÊ¼3Ãëºó¶ã±Ü
+			if (mACFlightStatus.timeCounter - mslWarningStartTime > 3000) {		// å¯¼å¼¹è­¦å‘Šå¼€å§‹3ç§’åèº²é¿
 				readActionByPro(0, 11);
 				//DoTacHeadEvade();
 				if (GetTgtSum() > 0){
 					PrintState();
 					PrintReward();
 				}
-				strcpy(outputData.EventDes, "µôÍ·");
+				strcpy(outputData.EventDes, "æ‰å¤´");
 				logEvent(outputData);
 			}
-			else { // ÔÚÃ»ÓĞµ¼µ¯¾¯¸æÊ±Ë¢ĞÂµ¼µ¯¾¯¸æ¼ÆÊ±Æ÷
+			else { // åœ¨æ²¡æœ‰å¯¼å¼¹è­¦å‘Šæ—¶åˆ·æ–°å¯¼å¼¹è­¦å‘Šè®¡æ—¶å™¨
 				mslWarningStartTime = mACFlightStatus.timeCounter;
 			}
 		}
-		// ÎŞ·¨¹¥»÷£¬ÎŞĞè¶ã±ÜÊ±È«ËÙÍ»½ø
+		// æ— æ³•æ”»å‡»ï¼Œæ— éœ€èº²é¿æ—¶å…¨é€Ÿçªè¿›
 		if (mACRdrTarget.tgtCnt == 0 &&	mACMslWarning.mslCnt ==0) {
 			readActionByPro(0, 1);
 			//DoTacPointAtk();
@@ -186,12 +186,12 @@ void MyStrategy::timeSlice40()
 					PrintState();
 					PrintReward();
 				}
-			strcpy(outputData.EventDes, "ÏòµĞ·½·ÀÏßÍ»Î§");
+			strcpy(outputData.EventDes, "å‘æ•Œæ–¹é˜²çº¿çªå›´");
 			logEvent(outputData);
 		}
 		if (mACRdrTarget.tgtCnt > 0 && mACMslWarning.mslCnt == 0 && mACMSLInGuide.mslCnt > 0) {
-			// ÅĞ¶Ï×·»÷»¹ÊÇÍ»ÆÆ
-			// ´æÔÚµĞÈËÊ±
+			// åˆ¤æ–­è¿½å‡»è¿˜æ˜¯çªç ´
+			// å­˜åœ¨æ•Œäººæ—¶
 			if (mACFCCStatus.envInfos[0].FPoleValid || mACFCCStatus.envInfos[0].APoleValid) {
 				readActionByPro(1, 1);
 				//DoTacWpnShoot();
@@ -199,7 +199,7 @@ void MyStrategy::timeSlice40()
 					PrintState();
 					PrintReward();
 				}
-				strcpy(outputData.EventDes, "ÎäÆ÷·¢Éä");
+				strcpy(outputData.EventDes, "æ­¦å™¨å‘å°„");
 				logEvent(outputData);
 			}
 			if (mACFCCStatus.envInfos[1].FPoleValid || mACFCCStatus.envInfos[1].APoleValid) {
@@ -209,7 +209,7 @@ void MyStrategy::timeSlice40()
 					PrintState();
 					PrintReward();
 				}
-				strcpy(outputData.EventDes,"ÎäÆ÷·¢Éä");
+				strcpy(outputData.EventDes,"æ­¦å™¨å‘å°„");
 				logEvent(outputData);
 			} else {
 				readActionByPro(0, 2);
@@ -218,7 +218,7 @@ void MyStrategy::timeSlice40()
 					PrintState();
 					PrintReward();
 				}
-				strcpy(outputData.EventDes, "ÏòÒ»¼ÜµĞ·½·É»ú·ÉĞĞ");
+				strcpy(outputData.EventDes, "å‘ä¸€æ¶æ•Œæ–¹é£æœºé£è¡Œ");
 				logEvent(outputData);
 			}
 		}
@@ -227,7 +227,7 @@ void MyStrategy::timeSlice40()
 			//DoTacAltClimbP60();
 			PrintState();
 			PrintReward();
-			strcpy(outputData.EventDes, "¼Ó60¶ÈÉÏÉı");
+			strcpy(outputData.EventDes, "åŠ 60åº¦ä¸Šå‡");
 			logEvent(outputData);
 			if (mACFlightStatus.alt==4000) {
 				readActionByPro(0, 1);
@@ -236,7 +236,7 @@ void MyStrategy::timeSlice40()
 					PrintState();
 					PrintReward();
 				}
-				strcpy(outputData.EventDes, "ÏòµĞ·½·ÀÏßÍ»Ï®");
+				strcpy(outputData.EventDes, "å‘æ•Œæ–¹é˜²çº¿çªè¢­");
 				logEvent(outputData);
 			}
 		}
@@ -245,14 +245,14 @@ void MyStrategy::timeSlice40()
 }
 
 //--------------------------------------
-/// \brief ¶¯×÷´¦Àí
+/// \brief åŠ¨ä½œå¤„ç†
 struct Action {
-	int fin, sin; // Ò»¼¶Ë÷Òı£¬0£º·ÉĞĞ£¬1£º¹¥»÷£»¶ş¼¶Ë÷Òı£º¾ßÌå¶¯×÷
+	int fin, sin; // ä¸€çº§ç´¢å¼•ï¼Œ0ï¼šé£è¡Œï¼Œ1ï¼šæ”»å‡»ï¼›äºŒçº§ç´¢å¼•ï¼šå…·ä½“åŠ¨ä½œ
 };
 
-void deal(const char* filename, LPVOID lParam) { // ÌØÊâÔ­Òò²»·½±ã¼Óµ½MyStrategyÀàÀï
+void deal(const char* filename, LPVOID lParam) { // ç‰¹æ®ŠåŸå› ä¸æ–¹ä¾¿åŠ åˆ°MyStrategyç±»é‡Œ
 	FILE* fp = fopen(filename, "r");
-	int fin, sin; // Ò»¼¶Ë÷Òı£¬¶ş¼¶Ë÷Òı
+	int fin, sin; // ä¸€çº§ç´¢å¼•ï¼ŒäºŒçº§ç´¢å¼•
 	fseek(fp, -6, SEEK_END);
 	while (fgetc(fp) != 10);
 	fscanf(fp, "%d,%d", &fin, &sin);
@@ -266,25 +266,19 @@ void deal(const char* filename, LPVOID lParam) { // ÌØÊâÔ­Òò²»·½±ã¼Óµ½MyStrategy
 void MyStrategy::readAction() {
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
-<<<<<<< HEAD
 		if (watch(LEAD_ACTION, deal, &act)) {
-			cout << act.fin << endl;
-			cout << act.sin << endl;
-=======
-		if (watch(L".", LEAD_ACTION, deal, &act)) {
->>>>>>> fe3003d6c801a85b1e6205ee21fca5cf28c331b5
 			maneuver_i(act.fin, act.sin);
-		} else { // ¼àÌıÆÚ¼äÎÄ¼şÎ´·¢Éú¸Ä±ä
+		} else { // ç›‘å¬æœŸé—´æ–‡ä»¶æœªå‘ç”Ÿæ”¹å˜
 			DoTacHeadEvade();
 			return;
 		}
-		// TODO:ÊÕµ½actionºóµÄ·´À¡
+		// TODO:æ”¶åˆ°actionåçš„åé¦ˆ
 		PrintStatus(LEAD_STATE, GetNearestTgt());
 		PrintReward();
 	} else {
 		if (watch(WING_ACTION, deal, &act)) {
 			maneuver_i(act.fin, act.sin);
-		} else { // ¼àÌıÆÚ¼äÎÄ¼şÎ´·¢Éú¸Ä±ä
+		} else { // ç›‘å¬æœŸé—´æ–‡ä»¶æœªå‘ç”Ÿæ”¹å˜
 			DoTacHeadEvade();
 			return;
 		}
@@ -294,10 +288,10 @@ void MyStrategy::readAction() {
 	return;
 }
 
-void MyStrategy::readActionByPro(int fin, int sin) { // Ò»¶ş¼¶Ë÷Òı
+void MyStrategy::readActionByPro(int fin, int sin) { // ä¸€äºŒçº§ç´¢å¼•
 	maneuver_i(fin, sin);
-#ifndef DEEP_LEARNING // ×¨¼ÒÄ£Ê½Ê±Êä³ö¶¯×÷
-	// ×÷Õ½Çé¿öÏÂ
+#ifndef DEEP_LEARNING // ä¸“å®¶æ¨¡å¼æ—¶è¾“å‡ºåŠ¨ä½œ
+	// ä½œæˆ˜æƒ…å†µä¸‹
 	if (GetTgtSum() > 0) {
 		if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		FILE *fp = fopen(LEAD_ACTION, "a");
@@ -314,7 +308,7 @@ void MyStrategy::readActionByPro(int fin, int sin) { // Ò»¶ş¼¶Ë÷Òı
 }
 
 //--------------------------------------
-/// \brief ×´Ì¬´¦Àí
+/// \brief çŠ¶æ€å¤„ç†
 #define POW2(x) (x) * (x)
 
 double getTdAngle(const double vect1[3], const double vect2[3]) {
@@ -341,46 +335,46 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 	}
 	FILE *fp = fopen(filename, "a");
 	fprintf(fp, "[%d], %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d, %d, %d, %d, %d, %d\n",
-		mACFlightStatus.timeCounter,						// [Ê±±ê]
-		nearestTgt.slantRange,								// Ä¿±ê¾àÀë
-		mACFlightStatus.alt - nearestTgt.alt,				// Ä¿±ê¸ß¶È²î
-		nearestTgt.azGeo,									// Ä¿±ê µØÀíÏµ ·½Î»½Ç
-		nearestTgt.sbsSpeed,								// Ä¿±êËÙ¶È(m/s)
+		mACFlightStatus.timeCounter,						// [æ—¶æ ‡]
+		nearestTgt.slantRange,								// ç›®æ ‡è·ç¦»
+		mACFlightStatus.alt - nearestTgt.alt,				// ç›®æ ‡é«˜åº¦å·®
+		nearestTgt.azGeo,									// ç›®æ ‡ åœ°ç†ç³» æ–¹ä½è§’
+		nearestTgt.sbsSpeed,								// ç›®æ ‡é€Ÿåº¦(m/s)
 		mCOFlightStatus.flightMemCnt ?
-		mCOFlightStatus.memFlightStatus[0].groundSpeed :	// ÓÑ»úËÙ¶È(m/s)
+		mCOFlightStatus.memFlightStatus[0].groundSpeed :	// å‹æœºé€Ÿåº¦(m/s)
 		0,
 		mCOFlightStatus.flightMemCnt ?
 		sqrt( POW2(mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt) +
 		POW2((mACFlightStatus.lon - mCOFlightStatus.memFlightStatus[0].lon) * dis2Lons) +
 		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ) :
-		MAX_DIS,											// ÓÑ»ú¾àÀë
+		MAX_DIS,											// å‹æœºè·ç¦»
 		mCOFlightStatus.flightMemCnt ?
 		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt :
-		MAX_DIS,											// ÓÑ»ú¸ß¶È²î
+		MAX_DIS,											// å‹æœºé«˜åº¦å·®
 		getTdAngle(mACFlightStatus.velNWU, mCOFlightStatus.memFlightStatus[0].velNWU),
-															// ÓÑ»úËÙ¶ÈÊ¸Á¿¼Ğ½Ç
-		mACFlightStatus.groundSpeed,						// ±¾»úËÙ¶È
+															// å‹æœºé€Ÿåº¦çŸ¢é‡å¤¹è§’
+		mACFlightStatus.groundSpeed,						// æœ¬æœºé€Ÿåº¦
 		getTdAngle(mACFlightStatus.velNWU, nearestTgt.velNWU),
-															// µĞ»úËÙ¶ÈÊ¸Á¿¼Ğ½Ç
-		mACMslWarning.mslCnt > 0,							// ÊÇ·ñ±»µ¼µ¯Ëø¶¨
-		mACMSLInGuide.mslCnt > 0,							// ÊÇ·ñÔÚÖÆµ¼
-		mACFlightStatus.remainWpnNum,						// Ê£ÓàÎäÆ÷Á¿
-		GetTgtSum(),										// É¨Ãèµ½µÄµĞ»úÊıÁ¿
-		mACMslWarning.mslCnt,								// Ëø¶¨×Ô¼ºµÄµ¼µ¯ÊıÁ¿
-		mACMSLInGuide.mslCnt + nCoMslCnt					// ³¡ÉÏÎÒ·½µ¼µ¯ÊıÁ¿
+															// æ•Œæœºé€Ÿåº¦çŸ¢é‡å¤¹è§’
+		mACMslWarning.mslCnt > 0,							// æ˜¯å¦è¢«å¯¼å¼¹é”å®š
+		mACMSLInGuide.mslCnt > 0,							// æ˜¯å¦åœ¨åˆ¶å¯¼
+		mACFlightStatus.remainWpnNum,						// å‰©ä½™æ­¦å™¨é‡
+		GetTgtSum(),										// æ‰«æåˆ°çš„æ•Œæœºæ•°é‡
+		mACMslWarning.mslCnt,								// é”å®šè‡ªå·±çš„å¯¼å¼¹æ•°é‡
+		mACMSLInGuide.mslCnt + nCoMslCnt					// åœºä¸Šæˆ‘æ–¹å¯¼å¼¹æ•°é‡
 		);
 	fclose(fp);
 }
 
 //--------------------------------------
-/// \brief »Ø±¨´¦Àí
+/// \brief å›æŠ¥å¤„ç†
 void MyStrategy::SetFlightState(unsigned int flightID)
 {
-	// ÅĞ¶ÏÓÑ·½£¨»òÕß×ÔÉí£©·É»ú±»»÷ÂäµÄÇé¿ö£¬·µ»Ø×´Ì¬Öµ2
+	// åˆ¤æ–­å‹æ–¹ï¼ˆæˆ–è€…è‡ªèº«ï¼‰é£æœºè¢«å‡»è½çš„æƒ…å†µï¼Œè¿”å›çŠ¶æ€å€¼2
 	if ((flightID == mACFlightStatus.flightID) || (flightID == mCOFlightStatus.memFlightStatus[0].flightID)) {
 		g_flight_state = 2;
 	}
-	// ÅĞ¶ÏµĞ·½·É»ú±»»÷ÂäµÄÇé¿ö£¬·µ»Ø×´Ì¬Öµ1
+	// åˆ¤æ–­æ•Œæ–¹é£æœºè¢«å‡»è½çš„æƒ…å†µï¼Œè¿”å›çŠ¶æ€å€¼1
 	else {
 		g_flight_state = 1;
 	}
@@ -390,51 +384,51 @@ int MyStrategy::OutputReward()
 {
 	int reward = 0;
 
-	// µĞ·½·É»ú±»»÷ÂäµÄÇé¿ö£¨»÷ÂäÒ»¼ÜµĞ»ú£©
+	// æ•Œæ–¹é£æœºè¢«å‡»è½çš„æƒ…å†µï¼ˆå‡»è½ä¸€æ¶æ•Œæœºï¼‰
 	if(g_flight_state == 1)
 	{
-		// ÖØÖÃ×´Ì¬±äÁ¿
+		// é‡ç½®çŠ¶æ€å˜é‡
 		g_flight_state = 0;
 		reward += 250;
 	}
-	// ÓÑ·½·É»ú»ò×ÔÉí±»»÷ÂäµÄÇé¿ö£¨ÓÑ·½·É»ú±»»÷Âä£©
+	// å‹æ–¹é£æœºæˆ–è‡ªèº«è¢«å‡»è½çš„æƒ…å†µï¼ˆå‹æ–¹é£æœºè¢«å‡»è½ï¼‰
 	if(g_flight_state == 2)
 	{
-		// ÖØÖÃ×´Ì¬±äÁ¿
+		// é‡ç½®çŠ¶æ€å˜é‡
 		g_flight_state = 0;
 		reward -= 250;
 	}
-	// µ±µ¼µ¯ÍşĞ²ÊıÔö¼ÓÇÒÃ»ÓĞ·É»ú±»»÷ÖĞÊ±µÄreward£¨ÎÒ·½±»µĞ·½µ¼µ¯Ëø¶¨£©
+	// å½“å¯¼å¼¹å¨èƒæ•°å¢åŠ ä¸”æ²¡æœ‰é£æœºè¢«å‡»ä¸­æ—¶çš„rewardï¼ˆæˆ‘æ–¹è¢«æ•Œæ–¹å¯¼å¼¹é”å®šï¼‰
 	if (g_cnt_state < mACMslWarning.mslCnt && g_flight_state == 0 && mACFlightStatus.flightID == mACMslWarning.flightID)
 	{
 		g_cnt_state++;
 		reward -= 5;
 	}
-	// µ±µ¼µ¯ÍşĞ²Êı¼õÉÙ²¢ÇÒÃ»ÓĞ·É»ú×¹»ÙÊ±µÄreward£¨ÎÒ·½ÌÓÍÑµĞ·½µ¼µ¯£©
+	// å½“å¯¼å¼¹å¨èƒæ•°å‡å°‘å¹¶ä¸”æ²¡æœ‰é£æœºå æ¯æ—¶çš„rewardï¼ˆæˆ‘æ–¹é€ƒè„±æ•Œæ–¹å¯¼å¼¹ï¼‰
 	if (g_cnt_state > mACMslWarning.mslCnt && g_flight_state == 0 && mACFlightStatus.flightID == mACMslWarning.flightID)
 	{
 		g_cnt_state--;
 		reward += 10;
 	}
-	// ĞÂÕì²éµ½µĞ»úµÄÇé¿ö£¨ÎÒ·½»ñµÃµĞ·½ÊÓÒ°£©
+	// æ–°ä¾¦æŸ¥åˆ°æ•Œæœºçš„æƒ…å†µï¼ˆæˆ‘æ–¹è·å¾—æ•Œæ–¹è§†é‡ï¼‰
 	if (g_enmy_state < mACRdrTarget.tgtCnt && g_flight_state == 0)
 	{
 		g_enmy_state++;
 		reward += 2;
 	}
-	// Õì²ìµ½µÄµĞ»úÊıÁ¿¼õÉÙ£¨ÎÒ·½¶ªÊ§µĞ·½ÊÓÒ°£©
+	// ä¾¦å¯Ÿåˆ°çš„æ•Œæœºæ•°é‡å‡å°‘ï¼ˆæˆ‘æ–¹ä¸¢å¤±æ•Œæ–¹è§†é‡ï¼‰
 	if (g_enmy_state > mACRdrTarget.tgtCnt && g_flight_state == 0)
 	{
 		g_enmy_state--;
 		reward -= 2;
 	}
-	// ·É»ú·¢Éäµ¼µ¯
+	// é£æœºå‘å°„å¯¼å¼¹
 	if (g_launch_state < mTeamMSLLaunched.mslCnt && g_flight_state == 0 && mTeamMSLLaunched.trajectoryInfos[0].launchFlightID == mACFlightStatus.flightID)
 	{
 		g_launch_state++;
 		reward -= 10;
 	}
-	// ÎÒ·½µ¼µ¯Ëø¶¨µĞ·½Ò»¼Ü·É»ú
+	// æˆ‘æ–¹å¯¼å¼¹é”å®šæ•Œæ–¹ä¸€æ¶é£æœº
 	if (g_guide_state < mACMSLInGuide.mslCnt && g_flight_state == 0 && mACMSLInGuide.guideFlightID == mACFlightStatus.flightID)
 	{
 		g_guide_state++;
@@ -552,20 +546,20 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 	return result;
 };
 //--------------------------------------
-//Õ½Êõ¶¯×÷¿â
+//æˆ˜æœ¯åŠ¨ä½œåº“
 
-// Æ«ÖÃÖÆµ¼
+// åç½®åˆ¶å¯¼
 /*void MyStrategy::DoTacHeadGuide()
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
-	outputData.executePlaneID = mACFlightStatus.flightID; ///< Ä¿µÄ·É»ú±àºÅ
-	outputData.altCtrlCmd = true;        ///< ¸ß¶È±£³ÖÖ¸Áî
-	outputData.headCtrlCmd = true;       ///< º½Ïò±£³ÖÖ¸Áî
-	outputData.speedCtrlCmd = true;      ///< ËÙ¶È±£³ÖÖ¸Áî
-	outputData.desireAlt = 2000;       ///< ÆÚÍû¸ß¶È(m)
-	outputData.desireHead = mACMSLInGuide.guideInfos[0].mslGuideAz+35*PI/180;///< ÆÚÍûº½Â·º½Ïò(rad)
-	outputData.desireSpeed = 1000;///< ÆÚÍûº½Â·ËÙ¶È(m/s)
-	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< Ö¸Áî¼ÆÊı
+	outputData.executePlaneID = mACFlightStatus.flightID; ///< ç›®çš„é£æœºç¼–å·
+	outputData.altCtrlCmd = true;        ///< é«˜åº¦ä¿æŒæŒ‡ä»¤
+	outputData.headCtrlCmd = true;       ///< èˆªå‘ä¿æŒæŒ‡ä»¤
+	outputData.speedCtrlCmd = true;      ///< é€Ÿåº¦ä¿æŒæŒ‡ä»¤
+	outputData.desireAlt = 2000;       ///< æœŸæœ›é«˜åº¦(m)
+	outputData.desireHead = mACMSLInGuide.guideInfos[0].mslGuideAz+35*PI/180;///< æœŸæœ›èˆªè·¯èˆªå‘(rad)
+	outputData.desireSpeed = 1000;///< æœŸæœ›èˆªè·¯é€Ÿåº¦(m/s)
+	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< æŒ‡ä»¤è®¡æ•°
 	sendFlyControlCmd(outputData);
 }*/
