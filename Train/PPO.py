@@ -2,7 +2,7 @@ import time
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 import scipy.signal
 from watchdog.observers import Observer
 

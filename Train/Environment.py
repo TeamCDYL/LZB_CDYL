@@ -28,8 +28,8 @@ ACTION_LIST = {
 }
 
 # 文件路径
-STATE_FILE = r'../ACAIStrategyDemo/dist/state1.csv'
-ACTION_FILE = r'../ACAIStrategyDemo/dist/action1.csv'
+STATE_FILE = r'../ACAIStrategyDemo/dist/state2.csv'
+ACTION_FILE = r'../ACAIStrategyDemo/dist/action2.csv'
 WATCH_PATH = r'../ACAIStrategyDemo/dist'  # 监控目录
 
 

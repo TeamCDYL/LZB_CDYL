@@ -5,3 +5,8 @@ interface/
 *.sdf
 *.pdb
 *.ipch
+Train/.idea/
+Train/__pycache__/
+ACAIStrategyDemo/dist/
+ACAIStrategyDemo/ipch
+ACAIStrategyDemo/Release
