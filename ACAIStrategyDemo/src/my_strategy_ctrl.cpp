@@ -160,7 +160,9 @@ void MyStrategy::timeSlice40()
 			DoTacPointAtk();
 
 #ifdef DEEP_LEARNING	// 深度学习时读取动作
-		readAction(); 
+		static bool isReadAction = false;
+		if (isReadAction) PrintState();
+		isReadAction = readAction(); 
 #endif
 
 #ifndef DEEP_LEARNING // 专家模式时执行动作
@@ -269,29 +271,29 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 	return;
 }
 
-void MyStrategy::readAction() {
+bool MyStrategy::readAction()
+{
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		if (watch(LEAD_ACTION, deal, &act)) {
 			cout << act.fin << endl;
 			cout << act.sin << endl;
 			maneuver_i(act.fin, act.sin);
+			return true;
 		} else { // 监听期间文件未发生改变
 			DoTacPointAtk();
-			return;
+			return false;
 		}
-		// TODO:收到action后的反馈
-		PrintStatus(LEAD_STATE, GetNearestTgt());
 	} else {
 		if (watch(WING_ACTION, deal, &act)) {
 			maneuver_i(act.fin, act.sin);
+			return true;
 		} else { // 监听期间文件未发生改变
 			DoTacPointAtk();
-			return;
+			return false;
 		}
-		PrintStatus(WING_STATE, GetNearestTgt());
 	}
-	return;
+	return false;
 }
 
 void MyStrategy::readActionByPro(int fin, int sin) { // 一二级索引

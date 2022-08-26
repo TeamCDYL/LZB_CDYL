@@ -222,7 +222,7 @@ private:
 	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt);
 
 	/// \brief 读取动作
-	void readAction();
+	bool readAction();
 	
 	/// \brief 设定飞行状态
 	void SetFlightState(unsigned int flightID);
