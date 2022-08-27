@@ -1,4 +1,0 @@
-wait 等待对战开始
-outfight 脱战状态
-fight 作战状态
-end 对战结束

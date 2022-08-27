@@ -28,8 +28,8 @@ ACTION_LIST = {
 }
 
 # 文件路径
-STATE_FILE = r'../ACAIStrategyDemo/dist/state2.csv'
-ACTION_FILE = r'../ACAIStrategyDemo/dist/action2.csv'
+STATE_FILE = r'../ACAIStrategyDemo/dist/state1.csv'
+ACTION_FILE = r'../ACAIStrategyDemo/dist/action1.csv'
 WATCH_PATH = r'../ACAIStrategyDemo/dist'  # 监控目录
 
 
@@ -62,7 +62,7 @@ class FileMonitorHandler(FileSystemEventHandler):
     def on_modified(self, event):
         if not event.is_directory:
             file_path = event.src_path
-            if file_path[-10:] == 'state1.csv':
+            if file_path[-10:] == STATE_FILE[-10:]:
                 global_var.set_value('count', global_var.get_value('count') + 1)
                 if global_var.get_value('count') == 2:
                     global_var.set_value('count', 0)
@@ -73,9 +73,12 @@ class FileMonitorHandler(FileSystemEventHandler):
         if not event.is_directory:
             file_path = event.src_path
             if file_path[-3:] == 'end':
-                print('比赛终止')
                 global_var.set_value('done', True)
-                global_var.set_value('race_state', 'end')
+                print('第{times}场比赛结束'.format(times=global_var.get_value('game_times')))
+            if file_path[-5:] == 'start':
+                global_var.set_value('done', False)
+                global_var.set_value('game_times', global_var.get_value('game_times') + 1)
+                print('第{times}场比赛开始'.format(times=global_var.get_value('game_times')))
             if file_path[-5:] == 'fight':
                 print('作战状态')
                 global_var.set_value('race_state', 'fight')

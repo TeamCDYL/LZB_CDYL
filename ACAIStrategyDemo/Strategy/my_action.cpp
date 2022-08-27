@@ -15,7 +15,7 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 		case 4: DoTacAltClimbP60();break;
 		case 5: DoTacNoseDiveM30();break;
 		case 6:	DoTacNoseDiveM60();break;
-		//case 7: DoTacStaHov();break;
+		case 7: DoTacStaHov();break;
 		case 8: DoTurnLeft30();break;
 		case 9: DoTurnLeft60();break;
 		case 10: DoTurnRight30();break;
@@ -26,10 +26,9 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 		}
 	} else {
 		switch(sin) {
-		case 1:DoTacWpnShoot();break;
-		case 2:SwitchGuideFlight();break;
-		case 3:DoTacWpnShoot(1);break;
-		default:break;
+		case 1:DoTacWpnShoot(GetNearestTgt().tgtID);break;
+		// case 2:SwitchGuideFlight();break;
+		default:cout<<"未做攻击动作"<<endl;break;
 		}
 	}
 }
@@ -58,7 +57,7 @@ void MyStrategy::DoTacPointAtk()
 	outputData.desireSpeed	= 1000;     ///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "向敌方防线飞行" << endl;
+	//cout << "向敌方防线飞行" << endl;
 }
 
 /// \brief 向一架敌机飞行
@@ -394,22 +393,16 @@ void MyStrategy::DoTacCir() {
 //--------------------------------------
 // 攻击动作库
 ///  \brief 武器发射
-void MyStrategy::DoTacWpnShoot(int m)
+void MyStrategy::DoTacWpnShoot(unsigned int tgtID)
 {
 	ACAI::WpnControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
-	outputData.launchPlaneID = mACFlightStatus.flightID; ///< 发射机编号
-	outputData.guidePlaneID	 = mACFlightStatus.flightID;  ///< 制导机编号
-	switch(m){
-	case 0:
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;break;  ///< 导弹目标编号
-	case 1: 
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[1].tgtID;break;  ///< 导弹目标编号
-	default: 
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;break;  ///< 导弹目标编号
-	}
+	outputData.launchPlaneID = mACFlightStatus.flightID;	///< 发射机编号
+	outputData.guidePlaneID	 = mACFlightStatus.flightID;	///< 制导机编号
+
+	outputData.mslLockTgtID = tgtID;						///< 导弹目标编号
 	
-	outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
+	outputData._cmdCnt	= mACFlightStatus.timeCounter;		///< 指令计数
 	sendWpnControlCmd(outputData);
 	cout << "发射武器" << endl;
 }
