@@ -167,7 +167,7 @@ private:
 
 	///---------------------------------------
 	/// \brief 向敌方防线飞行
-	void DoTacPointAtk();
+	void DoTacPointAtk(bool isPrint=true);
 	/// \brief 向一架敌机飞行
 	void DoTacToTar();
 	/// \brief +30度加速爬升
@@ -207,7 +207,7 @@ private:
 
 	///---------------------------------------
 	/// \brief 武器发射
-	void DoTacWpnShoot(int m=0);
+	void DoTacWpnShoot(unsigned int tgtID);
 	/// \brief 切换制导机
 	void SwitchGuideFlight();
 
@@ -228,8 +228,6 @@ private:
 	void SetFlightState(unsigned int flightID);
 	/// \brief 计算回报
 	int OutputReward();
-	/// \brief 输出回报
-	void PrintReward();
 
 	int m_lastWpnShootTimeCounter;			///< 距离上次发射武器时间
 

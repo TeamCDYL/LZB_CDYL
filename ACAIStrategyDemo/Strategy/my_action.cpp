@@ -9,27 +9,26 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 {
 	if (fin == 0) {
 		switch(sin) {
-		case 1: DoTacPointAtk();break;
-		case 2: DoTacToTar();break;
-		case 3:	DoTacAltClimbP30();break;
-		case 4: DoTacAltClimbP60();break;
-		case 5: DoTacNoseDiveM30();break;
-		case 6:	DoTacNoseDiveM60();break;
-		//case 7: DoTacStaHov();break;
-		case 8: DoTurnLeft30();break;
-		case 9: DoTurnLeft60();break;
-		case 10: DoTurnRight30();break;
-		case 11: DoTacHeadEvade();break;
-		case 12: DoTurnEvad30();break;
-		case 13: DoTurnEvad60();break;
-		default: DoTacHeadEvade();break;
+		case 0: DoTacPointAtk();break;
+		case 1: DoTacToTar();break;
+		case 2:	DoTacAltClimbP30();break;
+		case 3: DoTacAltClimbP60();break;
+		case 4: DoTacNoseDiveM30();break;
+		case 5:	DoTacNoseDiveM60();break;
+		case 6: DoTacStaHov();break;
+		case 7: DoTurnLeft30();break;
+		case 8: DoTurnLeft60();break;
+		case 9: DoTurnRight30();break;
+		case 10: DoTacHeadEvade();break;
+		case 11: DoTurnEvad30();break;
+		case 12: DoTurnEvad60();break;
+		default: cout<<"[RACE] 不存在的机动动作"<<endl;break;
 		}
 	} else {
 		switch(sin) {
-		case 1:DoTacWpnShoot();break;
-		case 2:SwitchGuideFlight();break;
-		case 3:DoTacWpnShoot(1);break;
-		default:break;
+		case 0:DoTacWpnShoot(GetNearestTgt().tgtID);break;
+		case 1:SwitchGuideFlight();break;
+		default: cout<<"[RACE] 不存在的攻击动作"<<endl;break;
 		}
 	}
 }
@@ -37,7 +36,7 @@ void MyStrategy::maneuver_i(int fin,int sin )//一级索引，二级索引
 //--------------------------------------
 /// 机动动作库
 /// \brief 向敌方防线飞行
-void MyStrategy::DoTacPointAtk()
+void MyStrategy::DoTacPointAtk(bool isPrint)
 {
 	ACAI::FlyControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
@@ -58,7 +57,8 @@ void MyStrategy::DoTacPointAtk()
 	outputData.desireSpeed	= 1000;     ///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "向敌方防线飞行" << endl;
+	if (isPrint == true)
+		cout << "[RACE] 向敌方防线飞行" << endl;
 }
 
 /// \brief 向一架敌机飞行
@@ -74,7 +74,7 @@ void MyStrategy::DoTacToTar()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData.desireHead =mACRdrTarget.tgtInfos[0].azGeo;
 	sendFlyControlCmd(outputData);
-	cout << "向一架敌机飞行" << endl;
+	cout << "[RACE] 向一架敌机飞行" << endl;
 }
 
 /// \brief +30度加速爬升
@@ -92,7 +92,7 @@ void MyStrategy::DoTacAltClimbP30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "+30度加速爬升" << endl;
+	cout << "[RACE] +30度加速爬升" << endl;
 }
 
 /// \brief +60度加速爬升
@@ -110,7 +110,7 @@ void MyStrategy::DoTacAltClimbP60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "+60度加速爬升" << endl;
+	cout << "[RACE] +60度加速爬升" << endl;
 }
 
 /// \brief -30度下潜
@@ -128,7 +128,7 @@ void MyStrategy::DoTacNoseDiveM30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "-30度下潜" << endl;
+	cout << "[RACE] -30度下潜" << endl;
 }
 
 /// \brief -60度下潜
@@ -146,7 +146,7 @@ void MyStrategy::DoTacNoseDiveM60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "-60度下潜" << endl;
+	cout << "[RACE] -60度下潜" << endl;
 }
 
 /// \brief 蛇形机动
@@ -186,7 +186,7 @@ void MyStrategy::DoTacStaHov()
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	cout << "蛇形机动" << endl;
+	cout << "[RACE] 蛇形机动" << endl;
 }
 
 /// \brief 左转偏置30
@@ -204,7 +204,7 @@ void MyStrategy::DoTurnLeft30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "左转偏置30" << endl;
+	cout << "[RACE] 左转偏置30" << endl;
 }
 
 /// \brief 左转偏置60
@@ -221,7 +221,7 @@ void MyStrategy::DoTurnLeft60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "左转偏置60" << endl;
+	cout << "[RACE] 左转偏置60" << endl;
 }
 
 /// \brief 右转偏置30
@@ -238,7 +238,7 @@ void MyStrategy::DoTurnRight30()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "右转偏置30" << endl;
+	cout << "[RACE] 右转偏置30" << endl;
 }
 
 /// \brief 右转偏置60
@@ -255,7 +255,7 @@ void MyStrategy::DoTurnRight60()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "右转偏置60" << endl;
+	cout << "[RACE] 右转偏置60" << endl;
 }
 
 /// \brief 掉头
@@ -272,7 +272,7 @@ void MyStrategy::DoTacHeadEvade()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "掉头" << endl;
+	cout << "[RACE] 掉头" << endl;
 }
 
 /// \brief 掉头后30度下潜
@@ -285,7 +285,7 @@ void MyStrategy::DoTurnEvad30()
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
 	DoTacNoseDiveM30();
-	cout << "掉头后30度下潜" << endl;
+	cout << "[RACE] 掉头后30度下潜" << endl;
 }
 
 /// \brief 掉头后60度下潜
@@ -298,7 +298,7 @@ void MyStrategy::DoTurnEvad60()
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
 	DoTacNoseDiveM60();
-	cout << "掉头后60度下潜" << endl;
+	cout << "[RACE] 掉头后60度下潜" << endl;
 }
 
 /// \brief 左转向
@@ -315,7 +315,7 @@ void MyStrategy::DoTurnLeft()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "左转向" << endl;
+	cout << "[RACE] 左转向" << endl;
 }
 
 /// \brief 右转向
@@ -332,7 +332,7 @@ void MyStrategy::DoTurnRight()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "右转向" << endl;
+	cout << "[RACE] 右转向" << endl;
 }
 
 /// \brief 向前飞行
@@ -349,7 +349,7 @@ void MyStrategy::DoTurnFor()
 	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
 	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 	sendFlyControlCmd(outputData);
-	cout << "向前飞" << endl;
+	cout << "[RACE] 向前飞" << endl;
 }
 
 /// \brief 回环
@@ -388,30 +388,24 @@ void MyStrategy::DoTacCir() {
 		MyStrategy::DoTurnFor();			//向前飞行
 		nowCnt=mACFlightStatus.timeCounter;	//现在时间	
 	}
-	cout << "回环" << endl;
+	cout << "[RACE] 回环" << endl;
 }
 
 //--------------------------------------
 // 攻击动作库
 ///  \brief 武器发射
-void MyStrategy::DoTacWpnShoot(int m)
+void MyStrategy::DoTacWpnShoot(unsigned int tgtID)
 {
 	ACAI::WpnControlCmd outputData;
 	memset(&outputData, 0, sizeof(outputData));
-	outputData.launchPlaneID = mACFlightStatus.flightID; ///< 发射机编号
-	outputData.guidePlaneID	 = mACFlightStatus.flightID;  ///< 制导机编号
-	switch(m){
-	case 0:
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;break;  ///< 导弹目标编号
-	case 1: 
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[1].tgtID;break;  ///< 导弹目标编号
-	default: 
-	outputData.mslLockTgtID = mACRdrTarget.tgtInfos[0].tgtID;break;  ///< 导弹目标编号
-	}
+	outputData.launchPlaneID = mACFlightStatus.flightID;	///< 发射机编号
+	outputData.guidePlaneID	 = mACFlightStatus.flightID;	///< 制导机编号
+
+	outputData.mslLockTgtID = tgtID;						///< 导弹目标编号
 	
-	outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
+	outputData._cmdCnt	= mACFlightStatus.timeCounter;		///< 指令计数
 	sendWpnControlCmd(outputData);
-	cout << "发射武器" << endl;
+	cout << "[RACE] 发射武器" << endl;
 }
 
 /// \brief 切换制导机并发射武器
@@ -436,5 +430,5 @@ void MyStrategy::SwitchGuideFlight() {
 		outputData._cmdCnt	= mACFlightStatus.timeCounter;       ///< 指令计数
 		sendWpnControlCmd(outputData);
 	}
-	cout << "切换制导机" << endl;
+	cout << "[RACE] 切换制导机" << endl;
 }
