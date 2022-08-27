@@ -16,7 +16,7 @@ import global_var
 训练参数
 """
 
-steps_per_epoch = 30
+steps_per_epoch = 5
 epochs = 10
 gamma = 0.99
 clip_ratio = 0.2
@@ -208,13 +208,15 @@ if __name__ == "__main__":
     value = tf.squeeze(mlp(observation_input, list(hidden_sizes) + [1], tf.tanh, None), axis=1)
     critic = keras.Model(inputs=observation_input, outputs=value)
 
-    actor_model = keras.models.load_model('actor.h5')
-    critic_model = keras.models.load_model('critic.h5')
-
-    if actor_model is not None:
+    try:
+        actor_model = keras.models.load_model('actor.h5')
+        critic_model = keras.models.load_model('critic.h5')
+    except IOError:
+        print("[SYSTEM] 模型未找到，将在本次训练中重新生成模型")
+    else:
         actor = actor_model
-    if critic_model is not None:
         critic = critic_model
+        print("[SYSTEM] 成功加载模型")
 
     # 初始化policy和value的优化器
     policy_optimizer = keras.optimizers.Adam(learning_rate=policy_learning_rate)
@@ -299,7 +301,7 @@ if __name__ == "__main__":
 
         # 输出每个epoch的平均return和平均长度
         print(
-            f" Epoch: {epoch + 1}. Mean Return: {sum_return / num_episodes}. Mean Length: {sum_length / num_episodes}"
+            f"[TRAIN] Epoch: {epoch + 1}. Mean Return: {sum_return / num_episodes}. Mean Length: {sum_length / num_episodes}"
         )
 
     observer.join()
