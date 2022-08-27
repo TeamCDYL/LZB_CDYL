@@ -9,22 +9,21 @@ import global_var
 # 状态维度和动作集
 STATE_DIM = 16
 ACTION_LIST = {
-    0: 'DoTacHeadEvade',
-    1: 'DoTacPointAtk',
-    2: 'DoTacToTar',
-    3: 'DoTacAltClimbP30',
-    4: 'DoTacAltClimbP60',
-    5: 'DoTacNoseDiveM30',
-    6: 'DoTacNoseDiveM600',
-    7: 'DoTacStaHov',
-    8: 'DoTurnLeft30',
-    9: 'DoTurnLeft60',
-    10: 'DoTurnRight30',
-    11: 'DoTacHeadEvade',
-    12: 'DoTurnEvad30',
-    13: 'DoTurnEvad60',
-    14: 'DoTacWpnShoot',
-    15: 'SwitchGuideFlight'
+    0: 'DoTacPonitAtk',
+    1: 'DoTacToTar',
+    2: 'DoTacAltClimbP30',
+    3: 'DoTacAltClimbP60',
+    4: 'DoTacNoseDiveM30',
+    5: 'DoTacNoseDiveM600',
+    6: 'DoTacStaHov',
+    7: 'DoTurnLeft30',
+    8: 'DoTurnLeft60',
+    9: 'DoTurnRight30',
+    10: 'DoTacHeadEvade',
+    11: 'DoTurnEvad30',
+    12: 'DoTurnEvad60',
+    13: 'DoTacWpnShoot',
+    14: 'SwitchGuideFlight'
 }
 
 # 文件路径
@@ -47,7 +46,7 @@ def monitor_state():
 
 # action输出转换
 def action_transfer(action):
-    if action >= 14:
+    if action >= 13:
         return '\n1,' + str(action - 13)
     else:
         return '\n0,' + str(action)
@@ -63,27 +62,24 @@ class FileMonitorHandler(FileSystemEventHandler):
         if not event.is_directory:
             file_path = event.src_path
             if file_path[-10:] == STATE_FILE[-10:]:
-                global_var.set_value('count', global_var.get_value('count') + 1)
-                if global_var.get_value('count') == 2:
-                    global_var.set_value('count', 0)
-                    print("state更新: %s " % file_path)
-                    global_var.set_value('state_signal', True)
+                print("[SYSTEM] state更新: %s " % file_path)
+                global_var.set_value('state_signal', True)
 
     def on_created(self, event):
         if not event.is_directory:
             file_path = event.src_path
             if file_path[-3:] == 'end':
                 global_var.set_value('done', True)
-                print('第{times}场比赛结束'.format(times=global_var.get_value('game_times')))
+                print('[RACE] 第{times}场比赛结束'.format(times=global_var.get_value('game_times')))
             if file_path[-5:] == 'start':
                 global_var.set_value('done', False)
                 global_var.set_value('game_times', global_var.get_value('game_times') + 1)
-                print('第{times}场比赛开始'.format(times=global_var.get_value('game_times')))
+                print('[RACE] 第{times}场比赛开始'.format(times=global_var.get_value('game_times')))
             if file_path[-5:] == 'fight':
-                print('作战状态')
+                print('[RACE] 进入作战状态')
                 global_var.set_value('race_state', 'fight')
             if file_path[-8:] == 'outfight':
-                print('脱战状态')
+                print('[RACE] 进入脱战状态')
                 global_var.set_value('race_state', 'outfight')
 
 
@@ -131,7 +127,7 @@ class Env(object):
 
         done = global_var.get_value('done')
 
-        print('采取行动为：' + str(ACTION_LIST[action]) + '    回报为：' + str(reward))
+        print('[RACE] 采取行动为：' + str(ACTION_LIST[action]) + '    回报为：' + str(reward))
 
         return self.state, reward, done, {}
 
