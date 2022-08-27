@@ -190,7 +190,6 @@ if __name__ == "__main__":
     global_var.set_value('done', False)
     global_var.set_value('state_signal', False)
     global_var.set_value('race_state', 'wait')
-    global_var.set_value('count', 0)
     global_var.set_value('game_times', 0)
 
     # 初始化环境 获取状态空间(state)的维度和动作(action)数量

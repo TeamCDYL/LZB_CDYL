@@ -1,5 +1,4 @@
 import time
-import csv
 import numpy as np
 import pandas as pd
 from watchdog.events import FileSystemEventHandler
@@ -39,8 +38,8 @@ def monitor_state():
     state = np.array(list(map(float, state[1:])), dtype=np.float32)
     reward = state[-1]
     state = state[:-1]
-    print('state: ', state)
-    print('reward: ', reward)
+    print('[Data] state: ', state)
+    print('[Data] reward: ', reward)
     return state, reward
 
 
