@@ -207,7 +207,7 @@ private:
 
 	///---------------------------------------
 	/// \brief 武器发射
-	void DoTacWpnShoot(int m=0);
+	void DoTacWpnShoot(unsigned int tgtID);
 	/// \brief 切换制导机
 	void SwitchGuideFlight();
 

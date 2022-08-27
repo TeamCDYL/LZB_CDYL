@@ -17,7 +17,7 @@ import global_var
 """
 
 steps_per_epoch = 30
-epochs = 1
+epochs = 10
 gamma = 0.99
 clip_ratio = 0.2
 policy_learning_rate = 3e-4
@@ -191,6 +191,7 @@ if __name__ == "__main__":
     global_var.set_value('state_signal', False)
     global_var.set_value('race_state', 'wait')
     global_var.set_value('count', 0)
+    global_var.set_value('game_times', 0)
 
     # 初始化环境 获取状态空间(state)的维度和动作(action)数量
     env = Env()
@@ -207,6 +208,14 @@ if __name__ == "__main__":
     value = tf.squeeze(mlp(observation_input, list(hidden_sizes) + [1], tf.tanh, None), axis=1)
     critic = keras.Model(inputs=observation_input, outputs=value)
 
+    actor_model = keras.models.load_model('actor.h5')
+    critic_model = keras.models.load_model('critic.h5')
+
+    if actor_model is not None:
+        actor = actor_model
+    if critic_model is not None:
+        critic = critic_model
+
     # 初始化policy和value的优化器
     policy_optimizer = keras.optimizers.Adam(learning_rate=policy_learning_rate)
     value_optimizer = keras.optimizers.Adam(learning_rate=value_function_learning_rate)
@@ -218,12 +227,18 @@ if __name__ == "__main__":
     observer.start()
 
     # 初始化状态(state) 剧集返回值 剧集长度
-    observation, episode_return, episode_length = env.reset(), 0, 0
+    episode_return, episode_length = 0, 0
     """
     训练
     """
 
     for epoch in range(epochs):
+        # 等待游戏开始
+        while global_var.get_value('done'):
+            time.sleep(0.1)
+
+        observation = env.reset()
+
         # 初始化每个epoch的return值、长度和剧集数量之和
         sum_return = 0
         sum_length = 0

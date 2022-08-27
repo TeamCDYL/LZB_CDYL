@@ -1,64 +1,65 @@
-﻿生成启动时间为 2022/8/26 16:46:02。
-     1>项目“C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”在节点 2 上(build 个目标)。
+﻿生成启动时间为 2022/8/27 10:32:03。
+     1>项目“E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”在节点 2 上(build 个目标)。
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(298,5): warning MSB8004: Intermediate 目录未以斜杠结尾。此生成实例将添加斜杠，因为必须有这个斜杠才能正确计算 Intermediate 目录。
      1>InitializeBuildStatus:
          正在创建“Debug\Strategy.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
        ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I../../interface /I../src /I../src/include /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D STRATEGY_LIBRARY /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\src\my_strategy_ctrl.cpp
+         E:\Software\VC\bin\CL.exe /c /I../../interface /I../src /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D STRATEGY_LIBRARY /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\src\my_strategy_ctrl.cpp
          my_strategy_ctrl.cpp
      1>..\src\my_strategy_ctrl.cpp(37): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(47): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(51): warning C4553: “==”: 运算符不起任何作用；是否是有意使用“=”的?
-     1>..\src\my_strategy_ctrl.cpp(123): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(131): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(39): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(50): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(126): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
      1>..\src\my_strategy_ctrl.cpp(134): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(139): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(137): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
      1>..\src\my_strategy_ctrl.cpp(142): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(150): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(260): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(264): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(253) : 参见“fscanf”的声明
-     1>..\src\my_strategy_ctrl.cpp(339): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(342): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(409): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(415): warning C4018: “>”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(421): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(427): warning C4018: “>”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(433): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(439): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(450): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(451): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\include\stdio.h(234) : 参见“fopen”的声明
-     1>..\src\my_strategy_ctrl.cpp(460): warning C4018: “<”: 有符号/无符号不匹配
-     1>..\src\my_strategy_ctrl.cpp(462): warning C4018: “<”: 有符号/无符号不匹配
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(145): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(153): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(265): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(269): warning C4996: 'fscanf': This function or variable may be unsafe. Consider using fscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(253) : 参见“fscanf”的声明
+     1>..\src\my_strategy_ctrl.cpp(344): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(347): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(414): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(420): warning C4018: “>”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(426): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(432): warning C4018: “>”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(438): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(444): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(455): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(456): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\stdio.h(234) : 参见“fopen”的声明
+     1>..\src\my_strategy_ctrl.cpp(465): warning C4018: “<”: 有符号/无符号不匹配
+     1>..\src\my_strategy_ctrl.cpp(467): warning C4018: “<”: 有符号/无符号不匹配
          所有输出均为最新。
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Strategy.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib" /MACHINE:X86 /DLL Debug\strategy_interface.obj
+         E:\Software\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Strategy.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib" /MACHINE:X86 /DLL Debug\strategy_interface.obj
          Debug\file_watcher.obj
          Debug\my_strategy.obj
          Debug\my_strategy_ctrl.obj
          Debug\my_strategy_io.obj
          Debug\my_action.obj
-            正在创建库 C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib 和对象 C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.exp
-         Strategy.vcxproj -> C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll
+            正在创建库 E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib 和对象 E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.exp
+         Strategy.vcxproj -> E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll
        Manifest:
-         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll;#2" /manifest Debug\Strategy.dll.intermediate.manifest
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll;#2" /manifest Debug\Strategy.dll.intermediate.manifest
        FinalizeBuildStatus:
          正在删除文件“Debug\Strategy.unsuccessfulbuild”。
          正在对“Debug\Strategy.lastbuildstate”执行 Touch 任务。
-     1>已完成生成项目“C:\Users\LY\Desktop\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”(build 个目标)的操作。
+     1>已完成生成项目“E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”(build 个目标)的操作。
 
 生成成功。
 
-已用时间 00:00:01.35
+已用时间 00:00:01.21

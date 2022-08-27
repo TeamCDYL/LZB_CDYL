@@ -11,14 +11,14 @@ using namespace std;
 #define WING_REWARD "reward2.csv"
 #define MAX_DIS 50000
 
-const char * ActionTitle = "action first index, action second index";
 const char * StateTitle = "[time counter], distance to enemy, alt distance to enemy, "
 						"direction to enemy, enemy speed, friend speed, "
 						"distance to friend, alt distance to friend, speed direct to friend, "
 						"self speed, speed direct to enemy, is locked by msl, "
 						"is in guide, remaining msl, enemy in rdr, "
 						"n msl locked, our n msl, reward\n";
-const char * RewardTitle = "reward\n";
+const char * ActionTitle = "action first index, action second index";
+
 int timecounter=0;
 int testcounter=0;
 
@@ -34,9 +34,12 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
 	initData();
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
-	FILE *tmp = fopen("outfight", "w"); // 标志对战开始
-	fclose(tmp);
+	FILE *tmp_1 = fopen("start", "w"); // 标志对战开始
+	fclose(tmp_1);
+	FILE *tmp_2 = fopen("outfight", "w");
+	fclose(tmp_2);
 	remove("end");
+	remove("fight");
 	g_fight_init = false;
 }
 
@@ -48,7 +51,8 @@ void MyStrategy::onPKEnd()
 	fclose(tmp);
 	remove("outfight");
 	remove("fight");
-	g_fight_init == false;
+	remove("start");
+	g_fight_init = false;
 }
 
 void MyStrategy::onPKOut(unsigned int flightID)
@@ -63,7 +67,7 @@ void MyStrategy::backGround()
 
 void MyStrategy::timeSlice20()
 {
-	
+
 }
 
 bool inRange(double angle, double range) {
@@ -74,7 +78,6 @@ bool inRange(double angle, double range) {
 /// \brief 40ms线程
 void MyStrategy::timeSlice40()
 {
-	printf("%d\n", g_fight_init);
 	timecounter++;
 	testcounter++;
 	ACAI::EventLog outputData;
