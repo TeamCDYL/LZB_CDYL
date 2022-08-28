@@ -1,3 +1,5 @@
+// TODO 1.极限情况动作覆盖 2.边缘情况修改 3.测试及bug修复 4.Reward实现
+
 #include "my_strategy.h"
 #include "string.h"
 #include <iostream>
@@ -17,8 +19,8 @@ const char * StateTitle = "[time counter], distance to enemy, alt distance to en
 						"n msl locked, our n msl, reward\n";
 const char * ActionTitle = "action first index, action second index";
 
-int timecounter=0;
-int testcounter=0;
+int timecounter = 0;
+int timecounter_2 = 0;
 
 int g_flight_state;	///< 飞机存活状态
 int g_cnt_state;	///< 导弹威胁状态
@@ -26,6 +28,7 @@ int g_enmy_state;	///< 敌机数量状态
 int g_launch_state;	///< 我方发射导弹状态
 int g_guide_state;	///< 我方制导导弹状态
 bool g_fight_init;
+int g_time_piece_length;
 
 /// \brief 比赛开始时执行
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
@@ -43,6 +46,7 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 	fclose(tmp_2);
 
 	g_fight_init = false;
+	g_time_piece_length = 1;
 
 	remove(LEAD_STATE);
 	remove(WING_STATE);
@@ -86,12 +90,28 @@ void MyStrategy::onPKOut(unsigned int flightID)
 
 void MyStrategy::backGround()
 {
-    // TODO : 此处添加用户代码执行后台任务
+
 }
 
 void MyStrategy::timeSlice20()
 {
-
+	timecounter_2 %= 500;
+	if (timecounter == 0) {
+		if (GetTgtSum() > 0) {
+			FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
+			fclose(tmp);
+			remove("outfight");
+			if (g_fight_init == false) {
+				g_fight_init = true;
+				PrintState();
+			}
+		}
+		else {
+			FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
+			fclose(tmp);
+			remove("fight");
+		}
+	}
 }
 
 bool inRange(double angle, double range) {
@@ -103,36 +123,8 @@ bool inRange(double angle, double range) {
 void MyStrategy::timeSlice40()
 {
 	timecounter++;
-	testcounter++;
-	ACAI::EventLog outputData;
-	memset(&outputData, 0, sizeof(outputData));
-
-	//////////////////////////////////////////////////
-	if (GetTgtSum() > 0) {
-		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
-		fclose(tmp);
-		remove("outfight");
-		if (g_fight_init == false) {
-			g_fight_init = true;
-			PrintState();
-		}
-	}
-	else {
-		FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
-		fclose(tmp);
-		remove("fight");
-	}
-	///////////////////////////////////////////////////////
 
 	//规则
-
-	double HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
-	double LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
-	double LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
-	double HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10.0;
-	double LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10.0;
-	double LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10.0;
-
 	ACAI::FlyControlCmd cmd;
 	memset(&cmd, 0, sizeof(cmd));
 	cmd.desireAlt = mACFlightStatus.alt;
@@ -162,16 +154,19 @@ void MyStrategy::timeSlice40()
 		cmd.navCtrlCmd = true;
 	}
 	sendFlyControlCmd(cmd);
-	timecounter %= 250;
+	if (!(GetTgtSum() > 0))
+		maneuver_i(0, 0);
+	else
+		maneuver_i(mCmd.fin, mCmd.sin);
+	timecounter %= g_time_piece_length;
 	if (timecounter == 0)
 	{
-		if (!(GetTgtSum() > 0))
-			DoTacPointAtk(false);
+		write_maneuver(0, 16);
 
 #ifdef DEEP_LEARNING	// 深度学习时读取动作
 		static bool isReadAction = false;
 		if (isReadAction) PrintState();
-		isReadAction = readAction(); 
+		isReadAction = readAction();
 #endif
 
 #ifndef DEEP_LEARNING // 专家模式时执行动作
@@ -287,7 +282,7 @@ bool MyStrategy::readAction()
 	struct Action act = {-1, -1};
 	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
 		if (watch(LEAD_ACTION, deal, &act)) {
-			maneuver_i(act.fin, act.sin);
+			write_maneuver(act.fin, act.sin);
 			return true;
 		} else { // 监听期间文件未发生改变
 			//DoTacPointAtk(false);
@@ -295,7 +290,7 @@ bool MyStrategy::readAction()
 		}
 	} else {
 		if (watch(WING_ACTION, deal, &act)) {
-			maneuver_i(act.fin, act.sin);
+			write_maneuver(act.fin, act.sin);
 			return true;
 		} else { // 监听期间文件未发生改变
 			//DoTacPointAtk(false);
@@ -398,9 +393,9 @@ void MyStrategy::SetFlightState(unsigned int flightID)
 	}
 }
 
-int MyStrategy::OutputReward()
+double MyStrategy::OutputReward()
 {
-	int reward = 0;
+	double reward = 0;
 
 	// 敌方飞机被击落的情况（击落一架敌机）
 	if(g_flight_state == 1)
@@ -452,6 +447,9 @@ int MyStrategy::OutputReward()
 		g_guide_state++;
 		reward += 5;
 	}
+	reward += CalDisAdv();
+	reward += CalAltAdv();
+	reward += CalAngAdv();
 	return reward;
 }
 
@@ -554,21 +552,15 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 
 	return result;
 };
-//--------------------------------------
-//战术动作库
 
-// 偏置制导
-/*void MyStrategy::DoTacHeadGuide()
-{
-	ACAI::FlyControlCmd outputData;
-	memset(&outputData, 0, sizeof(outputData));
-	outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
-	outputData.altCtrlCmd = true;        ///< 高度保持指令
-	outputData.headCtrlCmd = true;       ///< 航向保持指令
-	outputData.speedCtrlCmd = true;      ///< 速度保持指令
-	outputData.desireAlt = 2000;       ///< 期望高度(m)
-	outputData.desireHead = mACMSLInGuide.guideInfos[0].mslGuideAz+35*PI/180;///< 期望航路航向(rad)
-	outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
-	outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
-	sendFlyControlCmd(outputData);
-}*/
+double MyStrategy::CalDisAdv() {
+
+}
+
+double MyStrategy::CalAltAdv() {
+
+}
+
+double MyStrategy::CalAngAdv() {
+
+}
