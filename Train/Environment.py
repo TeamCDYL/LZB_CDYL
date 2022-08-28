@@ -10,19 +10,19 @@ STATE_DIM = 16
 ACTION_LIST = {
     0: 'DoTacPonitAtk',
     1: 'DoTacToTar',
-    2: 'DoTacAltClimbP30',
-    3: 'DoTacAltClimbP60',
-    4: 'DoTacNoseDiveM30',
-    5: 'DoTacNoseDiveM600',
-    6: 'DoTacStaHov',
-    7: 'DoTurnLeft30',
-    8: 'DoTurnLeft60',
-    9: 'DoTurnRight30',
-    10: 'DoTacHeadEvade',
-    11: 'DoTurnEvad30',
-    12: 'DoTurnEvad60',
-    13: 'DoTacWpnShoot',
-    14: 'SwitchGuideFlight'
+    2: 'DoTacAlt0.6',
+    3: 'DoTacAlt0.5',
+    4: 'DoTacAlt0.4',
+    5: 'DoTacAlt0.3',
+    8: 'DoTacAlt0.2',
+    9: 'DoTacAlt0.1',
+    10: 'DoTurnLeft60',
+    11: 'DoTurnRight30',
+    12: 'DoTurnRight60',
+    13: 'DoTacHeadEvade',
+    14: 'DoTacCir',
+    15: 'DoTurnFor',
+    16: 'DoTacWpnShoot'
 }
 
 # 文件路径
@@ -45,8 +45,8 @@ def monitor_state():
 
 # action输出转换
 def action_transfer(action):
-    if action >= 13:
-        return '\n1,' + str(action - 13)
+    if action >= 16:
+        return '\n1,' + str(action - 16)
     else:
         return '\n0,' + str(action)
 

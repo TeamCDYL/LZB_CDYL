@@ -1,14 +1,26 @@
-﻿生成启动时间为 2022/8/27 13:10:27。
+﻿生成启动时间为 2022/8/29 1:22:09。
      1>项目“E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\Strategy\Strategy.vcxproj”在节点 2 上(build 个目标)。
      1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.CppBuild.targets(298,5): warning MSB8004: Intermediate 目录未以斜杠结尾。此生成实例将添加斜杠，因为必须有这个斜杠才能正确计算 Intermediate 目录。
      1>InitializeBuildStatus:
          正在创建“Debug\Strategy.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
        ClCompile:
-         所有输出均为最新。
+         E:\Software\VC\bin\CL.exe /c /I../../interface /I../src /Zi /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D STRATEGY_LIBRARY /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt my_action.cpp
+         my_action.cpp
+     1>my_action.cpp(71): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+                 E:\Software\VC\include\string.h(105) : 参见“strcpy”的声明
+     1>my_action.cpp(279): warning C4804: “<”: 在操作中使用类型“bool”不安全
          所有输出均为最新。
        Link:
-         所有输出均为最新。
+         E:\Software\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\Strategy.dll.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib" /MACHINE:X86 /DLL Debug\strategy_interface.obj
+         Debug\file_watcher.obj
+         Debug\my_strategy.obj
+         Debug\my_strategy_ctrl.obj
+         Debug\my_strategy_io.obj
+         Debug\my_action.obj
+            正在创建库 E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.lib 和对象 E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.exp
          Strategy.vcxproj -> E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"E:\Project\LZB_611\LZB_CDYL\ACAIStrategyDemo\dist\Strategy.dll;#2" /manifest Debug\Strategy.dll.intermediate.manifest
        FinalizeBuildStatus:
          正在删除文件“Debug\Strategy.unsuccessfulbuild”。
          正在对“Debug\Strategy.lastbuildstate”执行 Touch 任务。
@@ -16,4 +28,4 @@
 
 生成成功。
 
-已用时间 00:00:00.03
+已用时间 00:00:01.01

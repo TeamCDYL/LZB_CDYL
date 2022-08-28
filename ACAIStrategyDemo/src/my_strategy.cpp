@@ -1,8 +1,8 @@
 #include "my_strategy.h"
 #include "memory.h"
 
-#define MY_STRATEGT_VERSION 0x010001
-#define MY_STRATEGT_VERSION_STR "1.00.001"
+#define MY_STRATEGT_VERSION 0x020002
+#define MY_STRATEGT_VERSION_STR "2.00.002"
 
 CStrategy* CreateStrategyInstance()
 {
@@ -41,6 +41,13 @@ void MyStrategy::initData()
     memset(&mCOMslWarning, 0, sizeof(mCOMslWarning));
     memset(&mCOFCCStatus, 0, sizeof(mCOFCCStatus));
     memset(&mCOMSLInGuide, 0, sizeof(mCOMSLInGuide));
+	memset(&mLog, 0, sizeof(mLog));
+	memset(&mCmd, 0, sizeof(mCmd));
 
-	int m_lastWpnShootTimeCounter = 0;
+	HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
+	LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
+	LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
+	HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10.0;
+	LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10.0;
+	LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10.0;
 }

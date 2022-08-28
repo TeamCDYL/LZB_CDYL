@@ -15,11 +15,18 @@ extern int g_enmy_state;	//敌机数量状态
 extern int g_launch_state;	//我方发射导弹状态
 extern int g_guide_state;	//我方制导导弹状态
 extern bool g_fight_init;
+extern int g_time_piece_length;
 
 /// \struct 解三角形结果
 struct TriSolveResult {
 	double angle;
 	double length;
+};
+
+/// \struct 指令输入
+struct Cmd {
+	int fin;
+	int sin;
 };
 
 /// \brief 策略实现Demo
@@ -147,7 +154,13 @@ public:
 	/// \brief 机动动作集调用
     /// \details 处理动作读取
     /// \param[in] fin 动作类型索引 sin 动作索引
-	void maneuver_i(int fin,int sin );	
+	void maneuver_i(int fin,int sin);	
+
+	///---------------------------------------
+	/// \brief 机动动作读取和日志输出
+    /// \details 处理动作读取
+    /// \param[in] fin 动作类型索引 sin 动作索引
+	void write_maneuver(int fin,int sin);	
 
 private:
     /// \brief 初始化数据
@@ -167,17 +180,11 @@ private:
 
 	///---------------------------------------
 	/// \brief 向敌方防线飞行
-	void DoTacPointAtk(bool isPrint=true);
+	void DoTacPointAtk();
 	/// \brief 向一架敌机飞行
 	void DoTacToTar();
-	/// \brief +30度加速爬升
-	void DoTacAltClimbP30();
-	/// \brief +60度加速爬升
-	void DoTacAltClimbP60();
-	/// \brief -30度下潜
-	void DoTacNoseDiveM30();
-	/// \brief -60度下潜
-	void DoTacNoseDiveM60();
+	/// \brief 到达指定高度
+	void DoTacAlt(double rate);
 	/// \brief 蛇形机动
 	void DoTacStaHov();
 	/// \brief 左转偏置30
@@ -192,24 +199,12 @@ private:
 	void DoTacHeadEvade();
 	/// \brief 回环
 	void DoTacCir();
-	/// \brief 掉头后30度下潜
-	void DoTurnEvad30();
-	/// \brief 掉头后60度下潜
-	void DoTurnEvad60();
-	/// \brief 左转向
-	void DoTurnLeft();
-	/// \brief 右转向
-	void DoTurnRight();
 	/// \brief 向前飞行
 	void DoTurnFor();
-	/// \brief 下落俯冲飞行
-	void DoTacNoseDive();
 
 	///---------------------------------------
-	/// \brief 武器发射
-	void DoTacWpnShoot(unsigned int tgtID);
-	/// \brief 切换制导机
-	void SwitchGuideFlight();
+	/// \brief 攻击距离最近敌机
+	void DoTacWpnShoot();
 
 	///---------------------------------------
 	/// \brief 专家模式读取动作
@@ -226,10 +221,14 @@ private:
 	
 	/// \brief 设定飞行状态
 	void SetFlightState(unsigned int flightID);
+	/// \brief 计算距离优势
+	double CalDisAdv();
+	/// \brief 计算高度优势
+	double CalAltAdv();
+	/// \brief 计算角度优势
+	double CalAngAdv();
 	/// \brief 计算回报
-	int OutputReward();
-
-	int m_lastWpnShootTimeCounter;			///< 距离上次发射武器时间
+	double OutputReward();
 
 private:
     ACAI::PKConfig mPKConfig;               ///< 比赛配置信息 \sa ACAI::PKConfig
@@ -247,6 +246,14 @@ private:
     ACAI::COFCCStatus mCOFCCStatus;         ///< 编队成员发射火控包线 \sa ACAI::COFCCStatus
     ACAI::COMSLInGuide mCOMSLInGuide;       ///< 编队成员制导武器信息 \sa ACAI::COMSLInGuide
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
+	ACAI::EventLog mLog;
+	Cmd mCmd;
+	double HeightEdge;
+	double LonEdge;
+	double LatEdge;
+	double HeightCorrect;
+	double LonCorrect;
+	double LatCorrect;
 };
 
 #endif // MY_STRATEGY_H
