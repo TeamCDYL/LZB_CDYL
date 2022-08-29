@@ -15,7 +15,6 @@ extern int g_enmy_state;	//敌机数量状态
 extern int g_launch_state;	//我方发射导弹状态
 extern int g_guide_state;	//我方制导导弹状态
 extern bool g_fight_init;
-extern int g_time_piece_length;
 
 /// \struct 解三角形结果
 struct TriSolveResult {
@@ -254,6 +253,8 @@ private:
 	double HeightCorrect;
 	double LonCorrect;
 	double LatCorrect;
+	bool action_finished;
+	int startCnt;
 };
 
 #endif // MY_STRATEGY_H

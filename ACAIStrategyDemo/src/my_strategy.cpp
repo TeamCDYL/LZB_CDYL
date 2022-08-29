@@ -27,6 +27,7 @@ const char* MyStrategy::teamMembers() const {
 
 void MyStrategy::initData()
 {
+	action_finished = true;
     memset(&mPKConfig, 0, sizeof(mPKConfig));
     memset(&mACFlightStatus, 0, sizeof(mACFlightStatus));
     memset(&mACRdrTarget, 0, sizeof(mACRdrTarget));

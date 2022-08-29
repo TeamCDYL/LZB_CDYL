@@ -1,4 +1,4 @@
-// TODO 1.极限情况动作覆盖 2.边缘情况修改 3.测试及bug修复 4.Reward实现
+// TODO 1.极限情况动作覆盖 2.边缘情况修改 3.测试及bug修复
 
 #include "my_strategy.h"
 #include "string.h"
@@ -20,7 +20,6 @@ const char * StateTitle = "[time counter], distance to enemy, alt distance to en
 const char * ActionTitle = "action first index, action second index";
 
 int timecounter = 0;
-int timecounter_2 = 0;
 
 int g_flight_state;	///< 飞机存活状态
 int g_cnt_state;	///< 导弹威胁状态
@@ -95,22 +94,15 @@ void MyStrategy::backGround()
 
 void MyStrategy::timeSlice20()
 {
-	timecounter_2 %= 500;
-	if (timecounter == 0) {
-		if (GetTgtSum() > 0) {
-			FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
-			fclose(tmp);
-			remove("outfight");
-			if (g_fight_init == false) {
-				g_fight_init = true;
-				PrintState();
-			}
-		}
-		else {
-			FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
-			fclose(tmp);
-			remove("fight");
-		}
+	if (GetTgtSum() > 0) {
+		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
+		fclose(tmp);
+		remove("outfight");
+	}
+	else {
+		FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
+		fclose(tmp);
+		remove("fight");
 	}
 }
 
@@ -122,8 +114,11 @@ bool inRange(double angle, double range) {
 /// \brief 40ms线程
 void MyStrategy::timeSlice40()
 {
-	timecounter++;
-
+	// 第一次进入作战状态的初始化
+	if (GetTgtSum() > 0 && g_fight_init == false) {
+		g_fight_init = true;
+		PrintState();
+	}
 	//规则
 	ACAI::FlyControlCmd cmd;
 	memset(&cmd, 0, sizeof(cmd));
@@ -158,11 +153,8 @@ void MyStrategy::timeSlice40()
 		maneuver_i(0, 0);
 	else
 		maneuver_i(mCmd.fin, mCmd.sin);
-	timecounter %= g_time_piece_length;
-	if (timecounter == 0)
+	if (action_finished)
 	{
-		write_maneuver(0, 16);
-
 #ifdef DEEP_LEARNING	// 深度学习时读取动作
 		static bool isReadAction = false;
 		if (isReadAction) PrintState();
@@ -554,13 +546,41 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 };
 
 double MyStrategy::CalDisAdv() {
-
+	double dis = SolveTriangle(mACFlightStatus, GetNearestTgt()).length;
+	double maxDis = 1000;
+	if (mACFCCStatus.tgtCnt != 0)
+		maxDis = mACFCCStatus.envInfos[0].FoeRtr;
+	if (dis <= maxDis)
+		return 10;
+	else
+		return 10 * exp(-POW2((dis - maxDis)/maxDis));
 }
 
 double MyStrategy::CalAltAdv() {
-
+	double H_m = 1500;
+	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
+	if (ang < PI * 0.5) {
+		if (mACFlightStatus.alt - GetNearestTgt().alt > 0)
+			return 10 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+		else
+			return -10 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+	}
+	else if (ang > PI * 0.5 && ang < PI) {
+		if (mACFlightStatus.alt - GetNearestTgt().alt < 0)
+			return 10 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+		else
+			return -10 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+	}
+	else
+		return 0;
 }
 
 double MyStrategy::CalAngAdv() {
-
+	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
+	if (ang < PI * 0.5)
+		return 20 * (PI * 0.5 - ang);
+	else if (ang > PI * 0.5 && ang < PI)
+		return 20 * (PI * 0.5 - ang);
+	else
+		return 0;
 }
