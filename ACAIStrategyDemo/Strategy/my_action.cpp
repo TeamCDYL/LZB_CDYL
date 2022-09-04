@@ -9,28 +9,26 @@ void MyStrategy::maneuver_i(int fin,int sin)//一级索引，二级索引
 {
 	if (fin == 0) {
 		switch(sin) {
-		case 0: DoTacPointAtk();break;
+		case 0: DoTacWpnShoot();break;
 		case 1: DoTacToTar();break;
-		case 2:	DoTacAlt(0.6);break;
-		case 3: DoTacAlt(0.5);break;
-		case 4: DoTacAlt(0.4);break;
-		case 5:	DoTacAlt(0.3);break;
-		case 6: DoTacAlt(0.2);break;
-		case 7:	DoTacAlt(0.1);break;
-		case 8: DoTacStaHov();break;
-		case 9: DoTurnLeft30();break;
-		case 10: DoTurnLeft60();break;
-		case 11: DoTurnRight30();break;
-		case 12: DoTurnRight60();break;
-		case 13: DoTacHeadEvade();break;
-		case 14: DoTacCir();break;
-		case 15: DoTurnFor();break;
-		default: cout<<"[WARNING] 不存在的机动动作"<<endl;break;
+		case 2: DoTacAlt(0.5);break;
+		case 3: DoTacAlt(0.4);break;
+		case 4:	DoTacAlt(0.3);break;
+		case 5: DoTacAlt(0.2);break;
+		case 6: DoTacStaHov();break;
+		case 7: DoTurnLeft30();break;
+		case 8: DoTurnLeft60();break;
+		case 9: DoTurnRight30();break;
+		default: break;
 		}
 	} else {
 		switch(sin) {
-		case 0:DoTacWpnShoot();break;
-		default: cout<<"[WARNING] 不存在的攻击动作"<<endl;break;
+		case 0: DoTurnRight60();break;
+		case 1: DoTacHeadEvade();break;
+		case 2: DoTacCir();break;
+		case 3: DoTacPointAtk();break;
+		case 4: DoTurnFor();break;
+		default: break;
 		}
 	}
 }
@@ -42,28 +40,26 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 	char * logContent = "";
 	if (fin == 0) {
 		switch(sin) {
-		case 0: logContent = "[RACE] 向敌方防线飞行";break;
+		case 0: logContent = "[RACE] 攻击距离最近敌机";break;
 		case 1: logContent = "[RACE] 向一架敌机飞行";break;
-		case 2:	logContent = "[RACE] 高度0.6";break;
-		case 3: logContent = "[RACE] 高度0.5";break;
-		case 4: logContent = "[RACE] 高度0.4";break;
-		case 5:	logContent = "[RACE] 高度0.3";break;
-		case 6: logContent = "[RACE] 高度0.2";break;
-		case 7:	logContent = "[RACE] 高度0.1";break;
-		case 8: logContent = "[RACE] 蛇形机动";break;
-		case 9: logContent = "[RACE] 左转偏置30";break;
-		case 10: logContent = "[RACE] 左转偏置60";break;
-		case 11: logContent = "[RACE] 右转偏置30";break;
-		case 12: logContent = "[RACE] 右转偏置60 ";break;
-		case 13: logContent = "[RACE] 掉头";break;
-		case 14: logContent = "[RACE] 回环";break;
-		case 15: logContent = "[RACE] 向前飞行";break;
-		default: cout<<"[WARNING] 不存在的机动动作"<<endl;break;
+		case 2: logContent = "[RACE] 高度0.5";break;
+		case 3: logContent = "[RACE] 高度0.4";break;
+		case 4:	logContent = "[RACE] 高度0.3";break;
+		case 5: logContent = "[RACE] 高度0.2";break;
+		case 6: logContent = "[RACE] 蛇形机动";break;
+		case 7: logContent = "[RACE] 左转偏置30";break;
+		case 8: logContent = "[RACE] 左转偏置60";break;
+		case 9: logContent = "[RACE] 右转偏置30";break;
+		default: break;
 		}
 	} else {
 		switch(sin) {
-		case 0:logContent = "[RACE] 攻击距离最近敌机";break;
-		default: cout<<"[WARNING] 不存在的攻击动作"<<endl;break;
+		case 0: logContent = "[RACE] 右转偏置60 ";break;
+		case 1: logContent = "[RACE] 掉头";break;
+		case 2: logContent = "[RACE] 回环";break;
+		case 3: logContent = "[RACE] 向敌方防线飞行";break;
+		case 4: logContent = "[RACE] 向前飞行";break;
+		default: break;
 		}
 	}
 	strcpy(mLog.EventDes, logContent);
@@ -72,6 +68,7 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 
 //--------------------------------------
 /// 机动动作库
+
 /// \brief 向敌方防线飞行
 void MyStrategy::DoTacPointAtk()
 {
@@ -96,8 +93,8 @@ void MyStrategy::DoTacPointAtk()
 			outputData.desireNavLon	= mPKConfig.BlueMissionLon;    ///< 期望航路经度(rad)
 			outputData.desireNavLat	= mPKConfig.BlueMissionLat;    ///< 期望航路纬度(rad)
 		}
-		outputData.desireNavAlt = 5000;    ///< 期望航路高度(m)
-		outputData.desireSpeed	= 2000;     ///< 期望航路速度(m/s)
+		outputData.desireNavAlt = 6000;    ///< 期望航路高度(m)
+		outputData.desireSpeed	= 1000;     ///< 期望航路速度(m/s)
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
@@ -141,7 +138,7 @@ void MyStrategy::DoTacAlt(double rate)
 		startCnt = mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 3000) {
+	if (mACFlightStatus.timeCounter - startCnt < fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 1500) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -444,7 +441,7 @@ void MyStrategy::DoTacCir() {
 		startCnt = mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 8000) {
+	if (mACFlightStatus.timeCounter - startCnt < 7000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -472,7 +469,7 @@ void MyStrategy::DoTacWpnShoot()
 		startCnt = mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 200) {
+	if (mACFlightStatus.timeCounter - startCnt < 1000) {
 		ACAI::WpnControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.launchPlaneID = mACFlightStatus.flightID;	///< 发射机编号

@@ -9,12 +9,14 @@
 #include <set>
 using namespace std;
 
-extern int g_flight_state;	//飞机存活状态
-extern int g_cnt_state;		//导弹威胁状态
-extern int g_enmy_state;	//敌机数量状态
-extern int g_launch_state;	//我方发射导弹状态
-extern int g_guide_state;	//我方制导导弹状态
+extern unsigned int g_flight_state;	//飞机存活状态
+extern unsigned int g_cnt_state;		//导弹威胁状态
+extern unsigned int g_enmy_state;	//敌机数量状态
+extern unsigned int g_launch_state;	//我方发射导弹状态
+extern unsigned int g_win_state;
 extern bool g_fight_init;
+extern int last_tgt_num;
+extern int tgt_num;
 
 /// \struct 解三角形结果
 struct TriSolveResult {
@@ -161,9 +163,11 @@ public:
     /// \param[in] fin 动作类型索引 sin 动作索引
 	void write_maneuver(int fin,int sin);	
 
+	bool judge();
+
 private:
     /// \brief 初始化数据
-    void initData();
+    void initData(int role);
 
 	/// \brief 判断是否脱战
 	/// \return 我方编队扫描到的敌机总数量
@@ -206,14 +210,14 @@ private:
 	void DoTacWpnShoot();
 
 	///---------------------------------------
-	/// \brief 专家模式读取动作
+	/// \brief 专家模式动作
 	void readActionByPro(int fin, int sin);
 
 	///---------------------------------------
 	/// \brief 输出状态
-	void PrintState();
+	void PrintState(bool b=true);
 	/// \brief 输出状态
-	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt);
+	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, bool b);
 
 	/// \brief 读取动作
 	bool readAction();
@@ -226,6 +230,8 @@ private:
 	double CalAltAdv();
 	/// \brief 计算角度优势
 	double CalAngAdv();
+	/// \brief 计算和敌方阵营距离优势
+	double CalWinAdv();
 	/// \brief 计算回报
 	double OutputReward();
 
@@ -255,6 +261,9 @@ private:
 	double LatCorrect;
 	bool action_finished;
 	int startCnt;
+	int flightRole;
+	double dis2Lons;
+	double dis2Lats;
 };
 
 #endif // MY_STRATEGY_H

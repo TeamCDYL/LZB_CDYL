@@ -8,21 +8,21 @@ import global_var
 # 状态维度和动作集
 STATE_DIM = 16
 ACTION_LIST = {
-    0: 'DoTacPonitAtk',
+    0: 'DoTacWpnShoot',
     1: 'DoTacToTar',
-    2: 'DoTacAlt0.6',
-    3: 'DoTacAlt0.5',
-    4: 'DoTacAlt0.4',
-    5: 'DoTacAlt0.3',
-    8: 'DoTacAlt0.2',
-    9: 'DoTacAlt0.1',
-    10: 'DoTurnLeft60',
-    11: 'DoTurnRight30',
-    12: 'DoTurnRight60',
-    13: 'DoTacHeadEvade',
-    14: 'DoTacCir',
-    15: 'DoTurnFor',
-    16: 'DoTacWpnShoot'
+    2: 'DoTacAlt0.5',
+    3: 'DoTacAlt0.4',
+    4: 'DoTacAlt0.3',
+    5: 'DoTacAlt0.2',
+    6: 'DoTacStaHov',
+    7: 'DoTurnLeft30',
+    8: 'DoTurnLeft60',
+    9: 'DoTurnRight30',
+    10: 'DoTurnRight60',
+    11: 'DoTacHeadEvade',
+    12: 'DoTacCir',
+    13: 'DoTacPointAtk',
+    14: 'DoTurnFor'
 }
 
 # 文件路径
@@ -45,10 +45,10 @@ def monitor_state():
 
 # action输出转换
 def action_transfer(action):
-    if action >= 16:
-        return '\n1,' + str(action - 16)
+    if action >= 10:
+        return '1,' + str(action - 10) + '\n'
     else:
-        return '\n0,' + str(action)
+        return '0,' + str(action) + '\n'
 
 
 # watchdog文件监控器重写
@@ -76,9 +76,11 @@ class FileMonitorHandler(FileSystemEventHandler):
                 print('[RACE] 第{times}场比赛开始'.format(times=global_var.get_value('game_times')))
             if file_path[-5:] == 'fight':
                 print('[RACE] 进入作战状态')
+                global_var.set_value('done', False)
                 global_var.set_value('race_state', 'fight')
-            if file_path[-8:] == 'outfight':
+            if file_path[-5:] == 'outft':
                 print('[RACE] 进入脱战状态')
+                global_var.set_value('done', True)
                 global_var.set_value('race_state', 'outfight')
 
 
@@ -126,7 +128,7 @@ class Env(object):
 
         done = global_var.get_value('done')
 
-        print('[RACE] 采取行动为：' + str(ACTION_LIST[action]) + '    回报为：' + str(reward))
+        print('[RACE] 采取行动为：' + str(ACTION_LIST[action]) + '    回报为：' + str(reward) + '     终止否：' + str(done))
 
         return self.state, reward, done, {}
 

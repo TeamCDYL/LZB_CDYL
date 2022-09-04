@@ -16,8 +16,8 @@ import global_var
 训练参数
 """
 
-steps_per_epoch = 5
-epochs = 10
+steps_per_epoch = 100
+epochs = 1000
 gamma = 0.99
 clip_ratio = 0.2
 policy_learning_rate = 3e-4
@@ -195,7 +195,7 @@ if __name__ == "__main__":
     # 初始化环境 获取状态空间(state)的维度和动作(action)数量
     env = Env()
     observation_dimensions = env.observation_space.shape
-    num_actions = env.action_space.n
+    num_actions = env.action_space.n - 1
 
     # 初始化缓冲池
     buffer = Buffer(observation_dimensions, steps_per_epoch)
@@ -208,8 +208,8 @@ if __name__ == "__main__":
     critic = keras.Model(inputs=observation_input, outputs=value)
 
     try:
-        actor_model = keras.models.load_model('actor.h5')
-        critic_model = keras.models.load_model('critic.h5')
+        actor_model = keras.models.load_model('actor.h5', compile=False)
+        critic_model = keras.models.load_model('critic.h5', compile=False)
     except IOError:
         print("[SYSTEM] 模型未找到，将在本次训练中重新生成模型")
     else:
@@ -239,6 +239,7 @@ if __name__ == "__main__":
             time.sleep(0.1)
 
         observation = env.reset()
+        print("[SYSTEM] 初始化完成")
 
         # 初始化每个epoch的return值、长度和剧集数量之和
         sum_return = 0
@@ -266,14 +267,15 @@ if __name__ == "__main__":
             observation = observation_new
 
             # 到达设定边界时终止采样轨迹
-            terminal = done
+            terminal = global_var.get_value('done')
             if terminal or (t == steps_per_epoch - 1):
-                last_value = 0 if done else critic(observation.reshape(1, -1))
+                last_value = 0 if terminal else critic(observation.reshape(1, -1))
                 buffer.finish_trajectory(last_value)
                 sum_return += episode_return
                 sum_length += episode_length
                 num_episodes += 1
-                observation, episode_return, episode_length = env.reset(), 0, 0
+                episode_return, episode_length = 0, 0
+                break
 
         # 从缓存池中获取数据
         (

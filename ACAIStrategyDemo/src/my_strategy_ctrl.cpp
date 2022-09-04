@@ -1,4 +1,4 @@
-// TODO 1.极限情况动作覆盖 2.边缘情况修改 3.测试及bug修复
+// TODO 1.极限情况动作覆盖 4.python训练协调
 
 #include "my_strategy.h"
 #include "string.h"
@@ -10,6 +10,7 @@ using namespace std;
 #define LEAD_ACTION "action1.csv"
 #define WING_ACTION "action2.csv"
 #define MAX_DIS 50000
+#define POW2(x) (x) * (x)
 
 const char * StateTitle = "[time counter], distance to enemy, alt distance to enemy, "
 						"direction to enemy, enemy speed, friend speed, "
@@ -17,42 +18,49 @@ const char * StateTitle = "[time counter], distance to enemy, alt distance to en
 						"self speed, speed direct to enemy, is locked by msl, "
 						"is in guide, remaining msl, enemy in rdr, "
 						"n msl locked, our n msl, reward\n";
-const char * ActionTitle = "action first index, action second index";
+const char * ActionTitle = "action first index, action second index\n";
 
 int timecounter = 0;
 
-int g_flight_state;	///< 飞机存活状态
-int g_cnt_state;	///< 导弹威胁状态
-int g_enmy_state;	///< 敌机数量状态
-int g_launch_state;	///< 我方发射导弹状态
-int g_guide_state;	///< 我方制导导弹状态
+unsigned int g_flight_state;	///< 飞机存活状态
+unsigned int g_cnt_state;	///< 导弹威胁状态
+unsigned int g_enmy_state;	///< 敌机数量状态
+unsigned int g_launch_state;	///< 我方发射导弹状态
+unsigned int g_win_state;
 bool g_fight_init;
-int g_time_piece_length;
+int last_tgt_num;
+int tgt_num;
 
 /// \brief 比赛开始时执行
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
-	initData();
+	g_flight_state = 0;	///< 飞机存活状态
+	g_cnt_state = 0;	///< 导弹威胁状态
+	g_enmy_state = 0;	///< 敌机数量状态
+	g_launch_state = 6;	///< 我方发射导弹状态
+	g_win_state = 0;
+
+	initData(1);
     memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
 
 	remove("start");
 	remove("end");
 	remove("fight");
-	remove("outfight");
-	FILE *tmp_1 = fopen("start", "w"); // 标志对战开始
+	remove("outft");
+	FILE *tmp_1 = fopen("start", "w");
 	fclose(tmp_1);
-	FILE *tmp_2 = fopen("outfight", "w");
+	FILE *tmp_2 = fopen("outft", "w");
 	fclose(tmp_2);
 
 	g_fight_init = false;
-	g_time_piece_length = 1;
+	last_tgt_num = tgt_num = GetTgtSum();
 
 	remove(LEAD_STATE);
 	remove(WING_STATE);
 	remove(LEAD_ACTION);
 	remove(WING_ACTION);
-	mACFlightStatus.flightRole = ACAI::V_FLIGHT_ROLE_LEAD;
-	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+
+	if (flightRole == 1) {
 		FILE *tmp = fopen(LEAD_STATE, "w"); // 清空文件内容
 		fprintf(tmp, StateTitle);			// 文件表头
 		fclose(tmp);
@@ -72,14 +80,23 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 /// \brief 比赛结束时执行 
 void MyStrategy::onPKEnd()
 {
-	initData();
+	if (!judge())
+		g_win_state == 2;
+	else
+		g_win_state == 1;
+	PrintState();
 	remove("start");
 	remove("end");
 	remove("fight");
-	remove("outfight");
+	remove("outft");
 	FILE *tmp = fopen("end", "w"); // 标志对战结束
 	fclose(tmp);
 	g_fight_init = false;
+	initData(1);
+	if (!judge())
+		g_win_state == 2;
+	else
+		g_win_state == 1;
 }
 
 void MyStrategy::onPKOut(unsigned int flightID)
@@ -94,16 +111,7 @@ void MyStrategy::backGround()
 
 void MyStrategy::timeSlice20()
 {
-	if (GetTgtSum() > 0) {
-		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
-		fclose(tmp);
-		remove("outfight");
-	}
-	else {
-		FILE *tmp = fopen("outfight", "w"); // 标志进入脱战状态
-		fclose(tmp);
-		remove("fight");
-	}
+
 }
 
 bool inRange(double angle, double range) {
@@ -114,46 +122,29 @@ bool inRange(double angle, double range) {
 /// \brief 40ms线程
 void MyStrategy::timeSlice40()
 {
+	last_tgt_num = tgt_num;
+	tgt_num = GetTgtSum();
+	if (tgt_num > 0) {
+		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
+		fclose(tmp);
+		remove("outft");
+	}
+	else {
+		FILE *tmp = fopen("outft", "w"); // 标志进入脱战状态
+		fclose(tmp);
+		remove("fight");
+	}
+
+	if ((last_tgt_num > 0 && !(tgt_num > 0)))
+		PrintState();
+
 	// 第一次进入作战状态的初始化
-	if (GetTgtSum() > 0 && g_fight_init == false) {
+	if (tgt_num > 0 && g_fight_init == false) {
 		g_fight_init = true;
 		PrintState();
 	}
-	//规则
-	ACAI::FlyControlCmd cmd;
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.desireAlt = mACFlightStatus.alt;
-	if (mACFlightStatus.alt < mPKConfig.MinFlyHeight + HeightEdge) {
-		cmd.navCtrlCmd = true;
-		cmd.desireNavAlt = mPKConfig.MaxFlyHeight - HeightCorrect;
-	} else if (mACFlightStatus.alt > mPKConfig.MaxFlyHeight - HeightEdge) {
-		cmd.desireNavAlt = mPKConfig.MinFlyHeight + HeightCorrect;
-		cmd.navCtrlCmd = true;
-	}
 
-	cmd.desireNavLon = mACFlightStatus.lon;
-	if (mACFlightStatus.lon > mPKConfig.RightUpLon - LonEdge) {
-		cmd.desireNavLon = mPKConfig.RightUpLon - LonCorrect;
-		cmd.navCtrlCmd = true;
-	} else if (mACFlightStatus.lon < mPKConfig.LeftDownLon + LonEdge) {
-		cmd.desireNavLat = mPKConfig.LeftDownLon + LonCorrect;
-		cmd.navCtrlCmd = true;
-	}
-
-	cmd.desireNavLat = mACFlightStatus.lat;
-	if (mACFlightStatus.lat > mPKConfig.RightUpLat - LatEdge) {
-		cmd.desireNavLat = mPKConfig.RightUpLat - LatCorrect;
-		cmd.navCtrlCmd = true;
-	} else if (mACFlightStatus.lat < mPKConfig.LeftDownLat + LatEdge) {
-		cmd.desireNavLat = mPKConfig.LeftDownLat + LatCorrect;
-		cmd.navCtrlCmd = true;
-	}
-	sendFlyControlCmd(cmd);
-	if (!(GetTgtSum() > 0))
-		maneuver_i(0, 0);
-	else
-		maneuver_i(mCmd.fin, mCmd.sin);
-	if (action_finished)
+	if (action_finished && g_fight_init)
 	{
 #ifdef DEEP_LEARNING	// 深度学习时读取动作
 		static bool isReadAction = false;
@@ -243,6 +234,51 @@ void MyStrategy::timeSlice40()
 		}
 #endif
 	} 
+
+	if (tgt_num == 0)
+		maneuver_i(1, 3);
+	else
+		maneuver_i(mCmd.fin, mCmd.sin);
+
+	//规则
+	ACAI::FlyControlCmd cmd;
+	memset(&cmd, 0, sizeof(cmd));
+	bool rule = false;
+	cmd.desireAlt = mACFlightStatus.alt;
+	if (mACFlightStatus.alt < mPKConfig.MinFlyHeight + HeightEdge) {
+		cmd.altCtrlCmd = true;
+		cmd.desireNavAlt = mPKConfig.MaxFlyHeight - HeightCorrect;
+		rule = true;
+	} else if (mACFlightStatus.alt > mPKConfig.MaxFlyHeight - HeightEdge) {
+		cmd.desireNavAlt = mPKConfig.MinFlyHeight + HeightCorrect;
+		cmd.altCtrlCmd = true;
+		rule = true;
+	}
+
+	cmd.desireNavLon = mACFlightStatus.lon;
+	if (mACFlightStatus.lon > mPKConfig.RightUpLon - LonEdge) {
+		cmd.desireNavLon = mPKConfig.RightUpLon - LonCorrect;
+		cmd.navCtrlCmd = true;
+		rule = true;
+	} else if (mACFlightStatus.lon < mPKConfig.LeftDownLon + LonEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLon + LonCorrect;
+		cmd.navCtrlCmd = true;
+		rule = true;
+	}
+
+	cmd.desireNavLat = mACFlightStatus.lat;
+	if (mACFlightStatus.lat > mPKConfig.RightUpLat - LatEdge) {
+		cmd.desireNavLat = mPKConfig.RightUpLat - LatCorrect;
+		cmd.navCtrlCmd = true;
+		rule = true;
+	} else if (mACFlightStatus.lat < mPKConfig.LeftDownLat + LatEdge) {
+		cmd.desireNavLat = mPKConfig.LeftDownLat + LatCorrect;
+		cmd.navCtrlCmd = true;
+		rule = true;
+	}
+	if (rule) {
+		sendFlyControlCmd(cmd);
+	}
 }
 
 //--------------------------------------
@@ -260,7 +296,6 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 	FILE* fp = fopen(filename, "r");
 	int fin, sin; // 一级索引，二级索引
 	fseek(fp, -6, SEEK_END);
-	while (fgetc(fp) != 10);
 	fscanf(fp, "%d,%d", &fin, &sin);
 	fclose(fp);
 	struct Action* act = (struct Action*) lParam;
@@ -272,7 +307,7 @@ void deal(const char* filename, LPVOID lParam) { // 特殊原因不方便加到MyStrategy
 bool MyStrategy::readAction()
 {
 	struct Action act = {-1, -1};
-	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) {
+	if (flightRole == 1) {
 		if (watch(LEAD_ACTION, deal, &act)) {
 			write_maneuver(act.fin, act.sin);
 			return true;
@@ -313,7 +348,6 @@ void MyStrategy::readActionByPro(int fin, int sin) { // 一二级索引
 
 //--------------------------------------
 /// \brief 状态处理
-#define POW2(x) (x) * (x)
 
 double getTdAngle(const double vect1[3], const double vect2[3]) {
 	double vectDot = vect1[0] * vect2[0] + vect1[1] * vect2[1] + vect1[2] * vect2[2];
@@ -325,22 +359,30 @@ double getTdAngle(const double vect1[3], const double vect2[3]) {
 	return rad;
 }
 
-inline void MyStrategy::PrintState() {
-	if (mACFlightStatus.flightRole == ACAI::V_FLIGHT_ROLE_LEAD) PrintStatus(LEAD_STATE, GetNearestTgt());
-	else PrintStatus(WING_STATE, GetNearestTgt());
+inline void MyStrategy::PrintState(bool b) {
+	if (flightRole == 1) PrintStatus(LEAD_STATE, GetNearestTgt(), b);
+	else PrintStatus(WING_STATE, GetNearestTgt(), b);
 }
 
-void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt) {
+void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, bool b) {
+
 	static const double dis2Lons = 160000 / (mPKConfig.RightUpLon - mPKConfig.LeftDownLon);
 	static const double dis2Lats = 80000 / (mPKConfig.RightUpLat - mPKConfig.LeftDownLat);
+
+	double r;
+	double s = nearestTgt.slantRange;
+	if (s>50000)
+		s = 50000;
+	if (b == false) {r = 0;}
+	else {r = OutputReward();}
 	int nCoMslCnt = 0;
 	for (int i = 0; i < mCOMSLInGuide.flightMemCnt; ++i) {
 		nCoMslCnt += mCOMSLInGuide.memMSLInGuide[0].mslCnt;
 	}
 	FILE *fp = fopen(filename, "a");
-	fprintf(fp, "[%d], %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d, %d, %d, %d, %d, %d, %d\n",
+	fprintf(fp, "[%d], %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d, %d, %d, %d, %d, %d, %lf\n",
 		mACFlightStatus.timeCounter,						// [时标]
-		nearestTgt.slantRange,								// 目标距离
+		s,													// 目标距离
 		mACFlightStatus.alt - nearestTgt.alt,				// 目标高度差
 		nearestTgt.azGeo,									// 目标 地理系 方位角
 		nearestTgt.sbsSpeed,								// 目标速度(m/s)
@@ -366,7 +408,7 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 		GetTgtSum(),										// 扫描到的敌机数量
 		mACMslWarning.mslCnt,								// 锁定自己的导弹数量
 		mACMSLInGuide.mslCnt + nCoMslCnt,					// 场上我方导弹数量
-		OutputReward()
+		r
 		);
 	fclose(fp);
 }
@@ -394,54 +436,54 @@ double MyStrategy::OutputReward()
 	{
 		// 重置状态变量
 		g_flight_state = 0;
-		reward += 250;
+		reward += 125.0;
 	}
 	// 友方飞机或自身被击落的情况（友方飞机被击落）
 	if(g_flight_state == 2)
 	{
 		// 重置状态变量
 		g_flight_state = 0;
-		reward -= 250;
+		reward -= 125.0;
 	}
+
+	if(g_win_state == 1)
+	{
+		// 重置状态变量
+		g_win_state = 0;
+		reward += 300.0;
+	}
+
+	if(g_win_state == 2)
+	{
+		// 重置状态变量
+		g_win_state = 0;
+		reward -= 300.0;
+	}
+
 	// 当导弹威胁数增加且没有飞机被击中时的reward（我方被敌方导弹锁定）
-	if (g_cnt_state < mACMslWarning.mslCnt && g_flight_state == 0 && mACFlightStatus.flightID == mACMslWarning.flightID)
-	{
-		g_cnt_state++;
-		reward -= 5;
-	}
 	// 当导弹威胁数减少并且没有飞机坠毁时的reward（我方逃脱敌方导弹）
-	if (g_cnt_state > mACMslWarning.mslCnt && g_flight_state == 0 && mACFlightStatus.flightID == mACMslWarning.flightID)
-	{
-		g_cnt_state--;
-		reward += 10;
-	}
-	// 新侦查到敌机的情况（我方获得敌方视野）
-	if (g_enmy_state < mACRdrTarget.tgtCnt && g_flight_state == 0)
-	{
-		g_enmy_state++;
-		reward += 2;
-	}
-	// 侦察到的敌机数量减少（我方丢失敌方视野）
-	if (g_enmy_state > mACRdrTarget.tgtCnt && g_flight_state == 0)
-	{
-		g_enmy_state--;
-		reward -= 2;
-	}
-	// 飞机发射导弹
-	if (g_launch_state < mTeamMSLLaunched.mslCnt && g_flight_state == 0 && mTeamMSLLaunched.trajectoryInfos[0].launchFlightID == mACFlightStatus.flightID)
-	{
-		g_launch_state++;
-		reward -= 10;
-	}
-	// 我方导弹锁定敌方一架飞机
-	if (g_guide_state < mACMSLInGuide.mslCnt && g_flight_state == 0 && mACMSLInGuide.guideFlightID == mACFlightStatus.flightID)
-	{
-		g_guide_state++;
-		reward += 5;
-	}
+	reward -= 20 * ((double)mACMslWarning.mslCnt - (double)g_cnt_state);
+	g_cnt_state = mACMslWarning.mslCnt;
+	reward -= 10 * (double)mACMslWarning.mslCnt;
+
+	//// 新侦查到敌机的情况（我方获得敌方视野）
+	//// 侦察到的敌机数量减少（我方丢失敌方视野）
+	reward += 3.6 * ((double)mACRdrTarget.tgtCnt - (double)g_enmy_state);
+	g_enmy_state = mACRdrTarget.tgtCnt;
+
+	reward += 1.2 * (double)mACRdrTarget.tgtCnt;
+
+	//// 飞机发射导弹
+	reward -= 10.0 * ((double)mACFlightStatus.remainWpnNum - (double)g_launch_state);
+	g_launch_state = mACFlightStatus.remainWpnNum;
+	
 	reward += CalDisAdv();
+
 	reward += CalAltAdv();
+
 	reward += CalAngAdv();
+
+	//reward += CalWinAdv();
 	return reward;
 }
 
@@ -525,9 +567,6 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 	double tLat = fRdrTgtInfo.lat;
 	double tAlt = fRdrTgtInfo.alt;
 
-	const double dis2Lons = 160000 / (mPKConfig.RightUpLon - mPKConfig.LeftDownLon);
-	const double dis2Lats = 80000 / (mPKConfig.RightUpLat - mPKConfig.LeftDownLat);
-
 	double mtDis = sqrt( POW2(mAlt - tAlt) + POW2((mLon - tLon) * dis2Lons) + POW2((mLat - tLat) * dis2Lats) );
 	double cosA = fabs(((mLat - tLat) * dis2Lats) / (sqrt(POW2((mLon - tLon) * dis2Lons) + POW2((mLat - tLat) * dis2Lats))));
 	double A = acos((cosA > 0.99) ? 0.99 : (cosA < -0.99) ? -0.99 : cosA);
@@ -547,13 +586,13 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 
 double MyStrategy::CalDisAdv() {
 	double dis = SolveTriangle(mACFlightStatus, GetNearestTgt()).length;
-	double maxDis = 1000;
+	double maxDis = 2000;
 	if (mACFCCStatus.tgtCnt != 0)
 		maxDis = mACFCCStatus.envInfos[0].FoeRtr;
 	if (dis <= maxDis)
-		return 10;
+		return 1.5;
 	else
-		return 10 * exp(-POW2((dis - maxDis)/maxDis));
+		return 3 * exp(-POW2((dis - maxDis)/maxDis)) - 1.5;
 }
 
 double MyStrategy::CalAltAdv() {
@@ -561,15 +600,15 @@ double MyStrategy::CalAltAdv() {
 	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
 	if (ang < PI * 0.5) {
 		if (mACFlightStatus.alt - GetNearestTgt().alt > 0)
-			return 10 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+			return 3 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
 		else
-			return -10 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+			return -3 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
 	}
 	else if (ang > PI * 0.5 && ang < PI) {
 		if (mACFlightStatus.alt - GetNearestTgt().alt < 0)
-			return 10 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+			return 3 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
 		else
-			return -10 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+			return -3 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
 	}
 	else
 		return 0;
@@ -578,9 +617,61 @@ double MyStrategy::CalAltAdv() {
 double MyStrategy::CalAngAdv() {
 	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
 	if (ang < PI * 0.5)
-		return 20 * (PI * 0.5 - ang);
+		return 3 * (PI * 0.5 - ang);
 	else if (ang > PI * 0.5 && ang < PI)
-		return 20 * (PI * 0.5 - ang);
+		return 3 * (PI * 0.5 - ang);
 	else
 		return 0;
+}
+
+double MyStrategy::CalWinAdv() {
+	double mLon = mACFlightStatus.lon;
+	double mLat = mACFlightStatus.lat;
+	double tLon;
+	double tLat;
+
+	if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
+	{
+		tLon = mPKConfig.RedMissionLon;    
+		tLat = mPKConfig.RedMissionLat;    
+	}
+	else
+	{
+		tLon = mPKConfig.BlueMissionLon;   
+		tLat = mPKConfig.BlueMissionLat;    
+	}
+
+	double dis = sqrt( POW2((mLon - tLon) * dis2Lons) + POW2((mLat - tLat) * dis2Lats) );
+	double rate = 1 - dis/160000;
+	if (mLon > 0.5 * (mPKConfig.RightUpLon - mPKConfig.LeftDownLon))
+		return POW2(exp(rate));
+	else
+		return -POW2(exp(rate));
+}
+
+bool MyStrategy::judge() {
+	double mLon = mACFlightStatus.lon;
+	double mLat = mACFlightStatus.lat;
+	double fLon = mCOFlightStatus.memFlightStatus[0].lon;
+	double fLat = mCOFlightStatus.memFlightStatus[0].lat;
+	double tLon;
+	double tLat;
+
+	if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
+	{
+		tLon = mPKConfig.RedMissionLon;    
+		tLat = mPKConfig.RedMissionLat;    
+	}
+	else
+	{
+		tLon = mPKConfig.BlueMissionLon;   
+		tLat = mPKConfig.BlueMissionLat;    
+	}
+
+	double rate = sqrt( POW2((mLon - tLon) * dis2Lons) + POW2((mLat - tLat) * dis2Lats) );
+	double rate_2 = sqrt( POW2((fLon - tLon) * dis2Lons) + POW2((fLat - tLat) * dis2Lats) );
+	if (rate < 50 || rate_2 < 50)
+		return true;
+	else
+		return false;
 }

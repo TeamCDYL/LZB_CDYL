@@ -12,7 +12,7 @@ CStrategy* CreateStrategyInstance()
 
 MyStrategy::MyStrategy()
 {
-    initData();
+    initData(1);
 }
 
 unsigned int MyStrategy::version() const { return MY_STRATEGT_VERSION; }
@@ -25,7 +25,7 @@ const char* MyStrategy::teamMembers() const {
     return " teamMembers£ºZhang San, Li Si";
 }
 
-void MyStrategy::initData()
+void MyStrategy::initData(int role)
 {
 	action_finished = true;
     memset(&mPKConfig, 0, sizeof(mPKConfig));
@@ -48,7 +48,9 @@ void MyStrategy::initData()
 	HeightEdge = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
 	LonEdge = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
 	LatEdge = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
-	HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 10.0;
-	LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 10.0;
-	LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 10.0;
+	HeightCorrect = (mPKConfig.MaxFlyHeight - mPKConfig.MinFlyHeight) / 20.0;
+	LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
+	LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
+
+	flightRole = role;
 }
