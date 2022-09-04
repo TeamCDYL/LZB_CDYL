@@ -73,10 +73,10 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 void MyStrategy::DoTacPointAtk()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID;		 ///< 目的飞机编号
@@ -99,7 +99,7 @@ void MyStrategy::DoTacPointAtk()
 		sendFlyControlCmd(outputData);
 	}
 	else {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -108,10 +108,10 @@ void MyStrategy::DoTacPointAtk()
 void MyStrategy::DoTacToTar()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -126,7 +126,7 @@ void MyStrategy::DoTacToTar()
 		sendFlyControlCmd(outputData);
 	}
 	else {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -135,10 +135,10 @@ void MyStrategy::DoTacToTar()
 void MyStrategy::DoTacAlt(double rate)
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 1500) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < (int)fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 1500) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -150,7 +150,7 @@ void MyStrategy::DoTacAlt(double rate)
 		sendFlyControlCmd(outputData);
 	}
 	else {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -159,10 +159,10 @@ void MyStrategy::DoTacAlt(double rate)
 void MyStrategy::DoTacStaHov()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 5000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 5000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -178,7 +178,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 12000 && mACFlightStatus.timeCounter - startCnt >= 5000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 12000 && (int)mACFlightStatus.timeCounter - startCnt >= 5000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -190,7 +190,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 14000 && mACFlightStatus.timeCounter - startCnt >= 12000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 14000 && (int)mACFlightStatus.timeCounter - startCnt >= 12000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -206,7 +206,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 18000 && mACFlightStatus.timeCounter - startCnt >= 14000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 18000 && (int)mACFlightStatus.timeCounter - startCnt >= 14000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -218,7 +218,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 23000 && mACFlightStatus.timeCounter - startCnt >= 18000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 23000 && (int)mACFlightStatus.timeCounter - startCnt >= 18000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -234,7 +234,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 25000 && mACFlightStatus.timeCounter - startCnt >= 23000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 25000 && (int)mACFlightStatus.timeCounter - startCnt >= 23000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -246,7 +246,7 @@ void MyStrategy::DoTacStaHov()
 		outputData._cmdCnt = mACFlightStatus.timeCounter;   ///< 指令计数
 		sendFlyControlCmd(outputData);
 	}
-	else if (mACFlightStatus.timeCounter - startCnt < 29000 && mACFlightStatus.timeCounter - startCnt >= 25000) {
+	else if ((int)mACFlightStatus.timeCounter - startCnt < 29000 && (int)mACFlightStatus.timeCounter - startCnt >= 25000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -263,7 +263,7 @@ void MyStrategy::DoTacStaHov()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -272,10 +272,10 @@ void MyStrategy::DoTacStaHov()
 void MyStrategy::DoTurnLeft30()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -292,7 +292,7 @@ void MyStrategy::DoTurnLeft30()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -301,10 +301,10 @@ void MyStrategy::DoTurnLeft30()
 void MyStrategy::DoTurnLeft60()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -321,7 +321,7 @@ void MyStrategy::DoTurnLeft60()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -330,10 +330,10 @@ void MyStrategy::DoTurnLeft60()
 void MyStrategy::DoTurnRight30()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -350,7 +350,7 @@ void MyStrategy::DoTurnRight30()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -359,10 +359,10 @@ void MyStrategy::DoTurnRight30()
 void MyStrategy::DoTurnRight60()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 2000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 2000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -379,7 +379,7 @@ void MyStrategy::DoTurnRight60()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -388,10 +388,10 @@ void MyStrategy::DoTurnRight60()
 void MyStrategy::DoTacHeadEvade()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 4000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 4000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -405,7 +405,7 @@ void MyStrategy::DoTacHeadEvade()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -414,10 +414,10 @@ void MyStrategy::DoTacHeadEvade()
 void MyStrategy::DoTurnFor()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 1000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 1000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -430,7 +430,7 @@ void MyStrategy::DoTurnFor()
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -438,10 +438,10 @@ void MyStrategy::DoTurnFor()
 /// \brief 回环
 void MyStrategy::DoTacCir() {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 7000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 7000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
@@ -455,7 +455,7 @@ void MyStrategy::DoTacCir() {
 		sendFlyControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
@@ -466,10 +466,10 @@ void MyStrategy::DoTacCir() {
 void MyStrategy::DoTacWpnShoot()
 {
 	if (action_finished) {
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if (mACFlightStatus.timeCounter - startCnt < 1000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 1000) {
 		ACAI::WpnControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.launchPlaneID = mACFlightStatus.flightID;	///< 发射机编号
@@ -481,7 +481,7 @@ void MyStrategy::DoTacWpnShoot()
 		sendWpnControlCmd(outputData);
 	}
 	else { 
-		startCnt = mACFlightStatus.timeCounter;
+		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = true;
 	}
 }
