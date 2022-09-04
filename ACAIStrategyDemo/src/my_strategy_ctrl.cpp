@@ -477,11 +477,11 @@ double MyStrategy::OutputReward()
 	reward -= 10.0 * ((double)mACFlightStatus.remainWpnNum - (double)g_launch_state);
 	g_launch_state = mACFlightStatus.remainWpnNum;
 	
-	reward += CalDisAdv();
+	reward += 3*CalDisAdv();
 
-	reward += CalAltAdv();
+	reward += 3*CalAltAdv();
 
-	reward += CalAngAdv();
+	reward += 3*CalAngAdv();
 
 	//reward += CalWinAdv();
 	return reward;
