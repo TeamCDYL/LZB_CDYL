@@ -3,19 +3,17 @@
 #define DEEP_LEARNING
 
 #include <math.h>
+#include <set>
 #include "strategy_interface.h"
 #include "strategy_interface.h"
 #include "file_watcher.h"
-#include <set>
 using namespace std;
 
 extern unsigned int g_flight_state;	//飞机存活状态
-extern unsigned int g_cnt_state;		//导弹威胁状态
+extern unsigned int g_cnt_state;	//导弹威胁状态
 extern unsigned int g_enmy_state;	//敌机数量状态
 extern unsigned int g_launch_state;	//我方发射导弹状态
-extern unsigned int g_win_state;
 extern bool g_fight_init;
-extern int last_tgt_num;
 extern int tgt_num;
 
 /// \struct 解三角形结果
@@ -28,6 +26,21 @@ struct TriSolveResult {
 struct Cmd {
 	int fin;
 	int sin;
+};
+
+
+/// \struct 訓練參數
+struct TrainConfig {
+	double shoot_down;	// 擊落
+	double win;			// 游戲勝利
+	double warning;		// 被導彈鎖定
+	double out_warning;	// 逃脫導彈鎖定
+	double get_target;	// 獲取敵方視野
+	double attack;		// 發射武器
+	double dis_adv;		// 距離優勢
+	double alt_adv;		// 高度優勢
+	double ang_adv;		// 角度優勢
+	double win_dav;		// 距終點距離
 };
 
 /// \brief 策略实现Demo
@@ -163,7 +176,7 @@ public:
     /// \param[in] fin 动作类型索引 sin 动作索引
 	void write_maneuver(int fin,int sin);	
 
-	bool judge();
+	bool judge(double dis);
 
 private:
     /// \brief 初始化数据
@@ -215,9 +228,9 @@ private:
 
 	///---------------------------------------
 	/// \brief 输出状态
-	void PrintState(bool b=true);
+	void PrintState(double reward);
 	/// \brief 输出状态
-	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, bool b);
+	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, double reward);
 
 	/// \brief 读取动作
 	bool readAction();
@@ -264,6 +277,9 @@ private:
 	int flightRole;
 	double dis2Lons;
 	double dis2Lats;
+	int m_fallen_num;
+	int t_fallen_num;
+	TrainConfig train_config;
 };
 
 #endif // MY_STRATEGY_H
