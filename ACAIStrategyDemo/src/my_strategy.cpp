@@ -28,7 +28,6 @@ const char* MyStrategy::teamMembers() const {
 void MyStrategy::initData(int role)
 {
 	action_finished = true;
-    memset(&mPKConfig, 0, sizeof(mPKConfig));
     memset(&mACFlightStatus, 0, sizeof(mACFlightStatus));
     memset(&mACRdrTarget, 0, sizeof(mACRdrTarget));
     memset(&mACEwsTarget, 0, sizeof(mACEwsTarget));
@@ -52,5 +51,22 @@ void MyStrategy::initData(int role)
 	LonCorrect = (mPKConfig.RightUpLon - mPKConfig.LeftDownLon) / 20.0;
 	LatCorrect = (mPKConfig.RightUpLat - mPKConfig.LeftDownLat) / 20.0;
 
+	dis2Lons = 160000 / (mPKConfig.RightUpLon - mPKConfig.LeftDownLon);
+	dis2Lats = 80000 / (mPKConfig.RightUpLat - mPKConfig.LeftDownLat);
+
 	flightRole = role;
+
+	m_fallen_num = 0;
+	t_fallen_num = 0;
+
+	train_config.shoot_down = 80;	// 擊落
+	train_config.win = 120;			// 游戲勝利
+	train_config.warning = 18;		// 被導彈鎖定
+	train_config.out_warning = 24;	// 逃脫導彈鎖定
+	train_config.get_target = 10;	// 獲取敵方視野
+	train_config.attack = 10;		// 發射武器
+	train_config.dis_adv = 4;		// 距離優勢
+	train_config.alt_adv = 4;		// 高度優勢
+	train_config.ang_adv = 4;		// 角度優勢
+	train_config.win_dav = 8;		// 距終點距離
 }

@@ -17,7 +17,7 @@ import global_var
 """
 
 steps_per_epoch = 100
-epochs = 1000
+epochs = 2000
 gamma = 0.99
 clip_ratio = 0.2
 policy_learning_rate = 3e-4
@@ -26,7 +26,7 @@ train_policy_iterations = 10
 train_value_iterations = 10
 lam = 0.97
 target_kl = 0.01
-hidden_sizes = (128, 64, 16)
+hidden_sizes = (256, 128, 32)
 
 
 """

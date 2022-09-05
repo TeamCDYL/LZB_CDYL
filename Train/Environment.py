@@ -6,7 +6,7 @@ from watchdog.events import FileSystemEventHandler
 import global_var
 
 # 状态维度和动作集
-STATE_DIM = 16
+STATE_DIM = 18
 ACTION_LIST = {
     0: 'DoTacWpnShoot',
     1: 'DoTacToTar',
