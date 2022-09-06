@@ -17,7 +17,7 @@ import global_var
 """
 
 steps_per_epoch = 100
-epochs = 2000
+epochs = 3000
 gamma = 0.99
 clip_ratio = 0.2
 policy_learning_rate = 3e-4

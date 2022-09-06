@@ -8,7 +8,7 @@ import global_var
 # 状态维度和动作集
 STATE_DIM = 18
 ACTION_LIST = {
-    0: 'DoTacWpnShoot',
+    0: 'DoTacCir',
     1: 'DoTacToTar',
     2: 'DoTacAlt0.5',
     3: 'DoTacAlt0.4',
@@ -20,7 +20,7 @@ ACTION_LIST = {
     9: 'DoTurnRight30',
     10: 'DoTurnRight60',
     11: 'DoTacHeadEvade',
-    12: 'DoTacCir',
+    12: 'DoTacAlt0.6',
     13: 'DoTacPointAtk',
     14: 'DoTurnFor'
 }
@@ -75,12 +75,11 @@ class FileMonitorHandler(FileSystemEventHandler):
                 global_var.set_value('game_times', global_var.get_value('game_times') + 1)
                 print('[RACE] 第{times}场比赛开始'.format(times=global_var.get_value('game_times')))
             if file_path[-5:] == 'fight':
-                print('[RACE] 进入作战状态')
+                print('[RACE] 当前状态为作战状态')
                 global_var.set_value('done', False)
                 global_var.set_value('race_state', 'fight')
             if file_path[-5:] == 'outft':
-                print('[RACE] 进入脱战状态')
-                global_var.set_value('done', True)
+                print('[RACE] 当前状态为脱战状态')
                 global_var.set_value('race_state', 'outfight')
 
 

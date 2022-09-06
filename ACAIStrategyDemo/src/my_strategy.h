@@ -12,7 +12,7 @@ using namespace std;
 extern unsigned int g_flight_state;	//飞机存活状态
 extern unsigned int g_cnt_state;	//导弹威胁状态
 extern unsigned int g_enmy_state;	//敌机数量状态
-extern unsigned int g_launch_state;	//我方发射导弹状态
+extern unsigned int g_wpn_state;
 extern bool g_fight_init;
 extern int tgt_num;
 
@@ -33,14 +33,15 @@ struct Cmd {
 struct TrainConfig {
 	double shoot_down;	// 擊落
 	double win;			// 游戲勝利
-	double warning;		// 被導彈鎖定
+	double in_warning;	// 被導彈鎖定
 	double out_warning;	// 逃脫導彈鎖定
 	double get_target;	// 獲取敵方視野
-	double attack;		// 發射武器
 	double dis_adv;		// 距離優勢
 	double alt_adv;		// 高度優勢
 	double ang_adv;		// 角度優勢
 	double win_dav;		// 距終點距離
+	double lost_wpn;
+	int tgt_num;
 };
 
 /// \brief 策略实现Demo
@@ -176,7 +177,7 @@ public:
     /// \param[in] fin 动作类型索引 sin 动作索引
 	void write_maneuver(int fin,int sin);	
 
-	bool judge(double dis);
+	bool judge(double dis, bool option);
 
 private:
     /// \brief 初始化数据
@@ -280,6 +281,7 @@ private:
 	int m_fallen_num;
 	int t_fallen_num;
 	TrainConfig train_config;
+	unsigned int m_last_shoot_time;
 };
 
 #endif // MY_STRATEGY_H

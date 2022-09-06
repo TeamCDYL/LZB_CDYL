@@ -9,7 +9,7 @@ void MyStrategy::maneuver_i(int fin,int sin)//一级索引，二级索引
 {
 	if (fin == 0) {
 		switch(sin) {
-		case 0: DoTacWpnShoot();break;
+		case 0: DoTacCir();break;
 		case 1: DoTacToTar();break;
 		case 2: DoTacAlt(0.5);break;
 		case 3: DoTacAlt(0.4);break;
@@ -25,7 +25,7 @@ void MyStrategy::maneuver_i(int fin,int sin)//一级索引，二级索引
 		switch(sin) {
 		case 0: DoTurnRight60();break;
 		case 1: DoTacHeadEvade();break;
-		case 2: DoTacWpnShoot();break;
+		case 2: DoTacAlt(0.6);break;
 		case 3: DoTacPointAtk();break;
 		case 4: DoTurnFor();break;
 		default: break;
@@ -40,7 +40,7 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 	char * logContent = "";
 	if (fin == 0) {
 		switch(sin) {
-		case 0: logContent = "[RACE] 攻击距离最近敌机";break;
+		case 0: logContent = "[RACE] 回环";break;
 		case 1: logContent = "[RACE] 向一架敌机飞行";break;
 		case 2: logContent = "[RACE] 高度0.5";break;
 		case 3: logContent = "[RACE] 高度0.4";break;
@@ -56,7 +56,7 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 		switch(sin) {
 		case 0: logContent = "[RACE] 右转偏置60 ";break;
 		case 1: logContent = "[RACE] 掉头";break;
-		case 2: logContent = "[RACE] 回环";break;
+		case 2: logContent = "[RACE] 高度0.6";break;
 		case 3: logContent = "[RACE] 向敌方防线飞行";break;
 		case 4: logContent = "[RACE] 向前飞行";break;
 		default: break;
@@ -76,7 +76,7 @@ void MyStrategy::DoTacPointAtk()
 		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if ((int)mACFlightStatus.timeCounter - startCnt < 1000) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < 5000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID;		 ///< 目的飞机编号
@@ -121,7 +121,22 @@ void MyStrategy::DoTacToTar()
 			outputData.headCtrlCmd = true;
 			outputData.desireHead = GetNearestTgt().azGeo;
 			outputData.altCtrlCmd = true;
-			outputData.desireAlt = GetNearestTgt().alt;
+			outputData.desireAlt = GetNearestTgt().alt - 1800;
+		}
+		else {
+			outputData.navCtrlCmd	= true;			///< 航路飞行指令
+			outputData.altCtrlCmd = true;
+			if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
+			{
+				outputData.desireNavLon	= mPKConfig.RedMissionLon;    ///< 期望航路经度(rad)
+				outputData.desireNavLat	= mPKConfig.RedMissionLat;    ///< 期望航路纬度(rad)
+			}
+			else
+			{
+				outputData.desireNavLon	= mPKConfig.BlueMissionLon;    ///< 期望航路经度(rad)
+				outputData.desireNavLat	= mPKConfig.BlueMissionLat;    ///< 期望航路纬度(rad)
+			}
+			outputData.desireNavAlt = 8000;    ///< 期望航路高度(m)
 		}
 		sendFlyControlCmd(outputData);
 	}
@@ -465,23 +480,21 @@ void MyStrategy::DoTacCir() {
 ///  \brief 武器发射
 void MyStrategy::DoTacWpnShoot()
 {
-	if (action_finished) {
-		startCnt = (int)mACFlightStatus.timeCounter;
-		action_finished = false;
-	}
-	if ((int)mACFlightStatus.timeCounter - startCnt < 1000) {
+	if (mACRdrTarget.tgtCnt != 0 && mACFCCStatus.envInfos[0].FPoleValid == true && (mACFlightStatus.timeCounter - m_last_shoot_time) > 20000) {
 		ACAI::WpnControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.launchPlaneID = mACFlightStatus.flightID;	///< 发射机编号
 		outputData.guidePlaneID	 = mACFlightStatus.flightID;	///< 制导机编号
 
-		outputData.mslLockTgtID = GetNearestTgt().tgtID;		///< 导弹目标编号
+		unsigned int id = 0;
+		if (mACRdrTarget.tgtCnt == 2)
+			(mACRdrTarget.tgtInfos[0].slantRange < mACRdrTarget.tgtInfos[1].slantRange) ? (id = mACRdrTarget.tgtInfos[0].tgtID) : (id = mACRdrTarget.tgtInfos[1].tgtID);
+		else
+			id = mACRdrTarget.tgtInfos[0].tgtID;
+		outputData.mslLockTgtID = id;							///< 导弹目标编号
 	
 		outputData._cmdCnt	= mACFlightStatus.timeCounter;		///< 指令计数
 		sendWpnControlCmd(outputData);
-	}
-	else { 
-		startCnt = (int)mACFlightStatus.timeCounter;
-		action_finished = true;
+		m_last_shoot_time = mACFlightStatus.timeCounter;
 	}
 }
