@@ -21,7 +21,7 @@ const char * ActionTitle = "action first index, action second index\n";
 unsigned int g_flight_state;	///< 飞机存活状态
 unsigned int g_cnt_state;		///< 导弹威胁状态
 unsigned int g_enmy_state;		///< 敌机数量状态
-unsigned int g_launch_state;	///< 我方发射导弹状态
+unsigned int g_wpn_state;
 bool g_fight_init;
 int tgt_num;
 
@@ -29,13 +29,14 @@ int tgt_num;
 void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 {
 	memcpy(&mPKConfig, &pkConfig, sizeof(mPKConfig));
-	initData(1);
 	g_flight_state = 0;	///< 飞机存活状态
 	g_cnt_state = 0;	///< 导弹威胁状态
 	g_enmy_state = 0;	///< 敌机数量状态
-	g_launch_state = mACFlightStatus.remainWpnNum;	///< 我方发射导弹状态
+	g_wpn_state = mACFlightStatus.remainWpnNum;
 	g_fight_init = false;
 	tgt_num = GetTgtSum();
+
+	initData(1);
 
 	remove("start");
 	remove("end");
@@ -72,7 +73,7 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 void MyStrategy::onPKEnd()
 {
 	double r = OutputReward();
-	if(judge(5050) || t_fallen_num >= 2)
+	if(judge(5010, true) || t_fallen_num >= train_config.tgt_num)
 		r += train_config.win;
 	else
 		r -= train_config.win;
@@ -114,13 +115,16 @@ bool inRange(double angle, double range) {
 void MyStrategy::timeSlice40()
 {
 	tgt_num = GetTgtSum();
-	if (tgt_num > 0 && g_fight_init == false) {
-		// 第一次进入作战状态的初始化
-		g_fight_init = true;
-		FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
-		fclose(tmp);
-		remove("outft");
-		PrintState(OutputReward());
+	if (g_fight_init == false) {
+		write_maneuver(1, 3);
+		if (tgt_num > 0) {
+			// 第一次进入作战状态的初始化
+			g_fight_init = true;
+			FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
+			fclose(tmp);
+			remove("outft");
+			PrintState(OutputReward());
+		}
 	}
 
 	if (action_finished && g_fight_init)
@@ -215,6 +219,7 @@ void MyStrategy::timeSlice40()
 	} 
 	
 	maneuver_i(mCmd.fin, mCmd.sin);
+	DoTacWpnShoot();
 
 	//规则
 	ACAI::FlyControlCmd cmd;
@@ -395,7 +400,7 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 		mACMslWarning.mslCnt,								// 锁定自己的导弹数量
 		mACMSLInGuide.mslCnt + nCoMslCnt,					// 场上我方导弹数量
 		tDis,												// 與終點距離
-		2 - t_fallen_num,									// 剩餘敵機數量
+		train_config.tgt_num - t_fallen_num,				// 剩餘敵機數量
 		reward
 		);
 	fclose(fp);
@@ -421,6 +426,11 @@ double MyStrategy::OutputReward()
 {
 	double reward = 0;
 
+	if (mACFlightStatus.remainWpnNum < g_wpn_state && g_flight_state != 2) {
+		reward -= train_config.lost_wpn;
+		g_wpn_state = mACFlightStatus.remainWpnNum;
+	}
+
 	// 敌方飞机被击落的情况（击落一架敌机）
 	if(g_flight_state == 1)
 	{
@@ -438,7 +448,7 @@ double MyStrategy::OutputReward()
 
 	// 当导弹威胁数增加且没有飞机被击中时的reward（我方被敌方导弹锁定）
 	// 当导弹威胁数减少并且没有飞机坠毁时的reward（我方逃脱敌方导弹）
-	reward -= train_config.warning * ((double)mACMslWarning.mslCnt - (double)g_cnt_state);
+	reward -= train_config.in_warning * ((double)mACMslWarning.mslCnt - (double)g_cnt_state);
 	g_cnt_state = mACMslWarning.mslCnt;
 	reward -= train_config.out_warning * (double)mACMslWarning.mslCnt;
 
@@ -449,15 +459,17 @@ double MyStrategy::OutputReward()
 
 	reward += 0.3 * train_config.get_target * (double)mACRdrTarget.tgtCnt;
 
-	//// 飞机发射导弹
-	reward += train_config.attack * ((double)mACFlightStatus.remainWpnNum - (double)g_launch_state);
-	g_launch_state = mACFlightStatus.remainWpnNum;
-
 	reward += train_config.dis_adv * CalDisAdv();
 	reward += train_config.alt_adv * CalAltAdv();
 	reward += train_config.ang_adv * CalAngAdv();
 	reward += train_config.win_dav * CalWinAdv();
 
+	if (judge(10000, false)) {
+		reward += 40;
+	}
+	else if (judge(20000, false)) {
+		reward += 20;
+	}
 	return reward;
 }
 
@@ -481,6 +493,10 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 			TriSolveResult mTriSolveResult = SolveTriangle(mACFlightStatus, mCORdrTarget.memRdrTarget[0].tgtInfos[0]);
 			tgtInfoTemp.azGeo = mTriSolveResult.angle;
 			tgtInfoTemp.slantRange = mTriSolveResult.length;
+			if (mACEwsTarget.tgtCnt != 0) {
+				tgtInfoTemp.azBody = mACEwsTarget.tgtInfos[0].azBody;
+				tgtInfoTemp.azGeo = mACEwsTarget.tgtInfos[0].azGeo;
+			}
 			return tgtInfoTemp;
 		}
 	}
@@ -500,6 +516,18 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 			tgtInfoTemp0.slantRange = mTriSolveResult0.length;
 			tgtInfoTemp1.azGeo = mTriSolveResult1.angle;
 			tgtInfoTemp1.slantRange = mTriSolveResult1.length;
+			if (mACEwsTarget.tgtCnt != 0) {
+				for (int i=0; i<mACEwsTarget.tgtCnt; i++) {
+					if (mACEwsTarget.tgtInfos[i].tgtID == tgtInfoTemp0.tgtID) {
+						tgtInfoTemp0.azBody = mACEwsTarget.tgtInfos[i].azBody;
+						tgtInfoTemp0.azGeo = mACEwsTarget.tgtInfos[i].azGeo;
+					}
+					if (mACEwsTarget.tgtInfos[i].tgtID == tgtInfoTemp1.tgtID) {
+						tgtInfoTemp1.azBody = mACEwsTarget.tgtInfos[i].azBody;
+						tgtInfoTemp1.azGeo = mACEwsTarget.tgtInfos[i].azGeo;
+					}
+				}
+			}
 			if (mACRdrTarget.tgtInfos[0].tgtID == tgtInfoTemp0.tgtID)
 				tgtInfoTemp0 = mACRdrTarget.tgtInfos[0];
 			else
@@ -518,6 +546,18 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 			tgtInfoTemp0.slantRange = mTriSolveResult0.length;
 			tgtInfoTemp1.azGeo = mTriSolveResult1.angle;
 			tgtInfoTemp1.slantRange = mTriSolveResult1.length;
+			if (mACEwsTarget.tgtCnt != 0) {
+				for (int i=0; i<mACEwsTarget.tgtCnt; i++) {
+					if (mACEwsTarget.tgtInfos[i].tgtID == tgtInfoTemp0.tgtID) {
+						tgtInfoTemp0.azBody = mACEwsTarget.tgtInfos[i].azBody;
+						tgtInfoTemp0.azGeo = mACEwsTarget.tgtInfos[i].azGeo;
+					}
+					if (mACEwsTarget.tgtInfos[i].tgtID == tgtInfoTemp1.tgtID) {
+						tgtInfoTemp1.azBody = mACEwsTarget.tgtInfos[i].azBody;
+						tgtInfoTemp1.azGeo = mACEwsTarget.tgtInfos[i].azGeo;
+					}
+				}
+			}
 			if ((tgtInfoTemp0.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[0].slantRange) < (tgtInfoTemp1.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[1].slantRange))
 				return tgtInfoTemp0;
 			else
@@ -526,6 +566,10 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 	}
 	ACAI::ACRdrTarget::RdrTgtInfo tgtInfoTemp;
 	memset(&tgtInfoTemp, 0, sizeof(tgtInfoTemp));
+	if (mACEwsTarget.tgtCnt != 0) {
+		tgtInfoTemp.azBody = mACEwsTarget.tgtInfos[0].azBody;
+		tgtInfoTemp.azGeo = mACEwsTarget.tgtInfos[0].azGeo;
+	}
 	return tgtInfoTemp;
 }
 
@@ -566,7 +610,7 @@ double MyStrategy::CalDisAdv() {
 	if (dis <= maxDis)
 		return 1.5;
 	else
-		return 3 * exp(-POW2((dis - maxDis)/maxDis)) - 1.5;
+		return exp(-POW2((dis - maxDis)/maxDis)) - 1.5;
 }
 
 double MyStrategy::CalAltAdv() {
@@ -574,15 +618,15 @@ double MyStrategy::CalAltAdv() {
 	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
 	if (ang < PI * 0.5) {
 		if (mACFlightStatus.alt - GetNearestTgt().alt > 0)
-			return 3 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+			return -exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
 		else
-			return -3 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+			return exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
 	}
 	else if (ang > PI * 0.5 && ang < PI) {
 		if (mACFlightStatus.alt - GetNearestTgt().alt < 0)
-			return 3 * exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
+			return -exp(-POW2((mACFlightStatus.alt - GetNearestTgt().alt - H_m) / H_m));
 		else
-			return -3 * exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
+			return exp(-POW2((GetNearestTgt().alt - mACFlightStatus.alt - H_m) / H_m));
 	}
 	else
 		return 0;
@@ -591,9 +635,9 @@ double MyStrategy::CalAltAdv() {
 double MyStrategy::CalAngAdv() {
 	double ang = fabs(getTdAngle(mACFlightStatus.velNWU,GetNearestTgt().velNWU));
 	if (ang < PI * 0.5)
-		return 3 * (PI * 0.5 - ang);
+		return (PI * 0.5 - ang);
 	else if (ang > PI * 0.5 && ang < PI)
-		return 3 * (PI * 0.5 - ang);
+		return (PI * 0.5 - ang);
 	else
 		return 0;
 }
@@ -623,7 +667,7 @@ double MyStrategy::CalWinAdv() {
 		return -POW2(exp(rate));
 }
 
-bool MyStrategy::judge(double dis) {
+bool MyStrategy::judge(double dis, bool option) {
 	double mLon = mACFlightStatus.lon;
 	double mLat = mACFlightStatus.lat;
 	double fLon = mCOFlightStatus.memFlightStatus[0].lon;
@@ -644,8 +688,16 @@ bool MyStrategy::judge(double dis) {
 
 	double rate = sqrt( POW2((mLon - tLon) * dis2Lons) + POW2((mLat - tLat) * dis2Lats) );
 	double rate_2 = sqrt( POW2((fLon - tLon) * dis2Lons) + POW2((fLat - tLat) * dis2Lats) );
-	if (rate < dis || rate_2 < dis)
-		return true;
-	else
-		return false;
+	if (option == true) {
+		if (rate < dis || rate_2 < dis)
+			return true;
+		else
+			return false;
+	}
+	else {
+		if (rate < dis)
+			return true;
+		else
+			return false;
+	}
 }

@@ -59,14 +59,17 @@ void MyStrategy::initData(int role)
 	m_fallen_num = 0;
 	t_fallen_num = 0;
 
-	train_config.shoot_down = 80;	// 擊落
-	train_config.win = 120;			// 游戲勝利
-	train_config.warning = 18;		// 被導彈鎖定
-	train_config.out_warning = 24;	// 逃脫導彈鎖定
+	train_config.shoot_down = 150;	// 擊落
+	train_config.win = 300;			// 游戲勝利
+	train_config.in_warning = 6;	// 被導彈鎖定
+	train_config.out_warning = 18;	// 逃脫導彈鎖定
 	train_config.get_target = 10;	// 獲取敵方視野
-	train_config.attack = 10;		// 發射武器
-	train_config.dis_adv = 4;		// 距離優勢
-	train_config.alt_adv = 4;		// 高度優勢
-	train_config.ang_adv = 4;		// 角度優勢
-	train_config.win_dav = 8;		// 距終點距離
+	train_config.lost_wpn = 30;
+	train_config.dis_adv = 5;		// 距離優勢
+	train_config.alt_adv = 5;		// 高度優勢
+	train_config.ang_adv = 5;		// 角度優勢
+	train_config.win_dav = 5;		// 距終點距離
+	train_config.tgt_num = 2;
+
+	m_last_shoot_time = mACFlightStatus.timeCounter;
 }
