@@ -6,4 +6,10 @@
     <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='newDebu|Win32'">
+    <LocalDebuggerCommand>C:\Users\LY\Desktop\☆公开☆第二届“龙智杯”超视距空战AI比赛平台-高倍速训练版V2.00_20220727\☆公开☆龙智杯-超视距AI空战仿真平台-高倍速训练版\Simplat.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
+    <ShowAllFiles>false</ShowAllFiles>
+  </PropertyGroup>
 </Project>

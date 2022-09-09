@@ -5,10 +5,9 @@ using namespace std;
 
 //--------------------------------------
 /// \brief 基本动作集
-void MyStrategy::maneuver_i(int fin,int sin)//一级索引，二级索引
+void MyStrategy::maneuver_i(int act)//一级索引，二级索引
 {
-	if (fin == 0) {
-		switch(sin) {
+	switch(act) {
 		case 0: DoTacCir();break;
 		case 1: DoTacToTar();break;
 		case 2: DoTacAlt(0.5);break;
@@ -19,27 +18,20 @@ void MyStrategy::maneuver_i(int fin,int sin)//一级索引，二级索引
 		case 7: DoTurnLeft30();break;
 		case 8: DoTurnLeft60();break;
 		case 9: DoTurnRight30();break;
+		case 10: DoTurnRight60();break;
+		case 11: DoTacHeadEvade();break;
+		case 12: DoTacAlt(0.6);break;
+		case 13: DoTacPointAtk();break;
+		case 14: DoTurnFor();break;
 		default: break;
-		}
-	} else {
-		switch(sin) {
-		case 0: DoTurnRight60();break;
-		case 1: DoTacHeadEvade();break;
-		case 2: DoTacAlt(0.6);break;
-		case 3: DoTacPointAtk();break;
-		case 4: DoTurnFor();break;
-		default: break;
-		}
 	}
 }
 
-void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
+void MyStrategy::write_maneuver(int act)//一级索引，二级索引
 {
-	mCmd.fin = fin;
-	mCmd.sin = sin;
+	mCmd = act;
 	char * logContent = "";
-	if (fin == 0) {
-		switch(sin) {
+	switch(act) {
 		case 0: logContent = "[RACE] 回环";break;
 		case 1: logContent = "[RACE] 向一架敌机飞行";break;
 		case 2: logContent = "[RACE] 高度0.5";break;
@@ -50,17 +42,12 @@ void MyStrategy::write_maneuver(int fin,int sin)//一级索引，二级索引
 		case 7: logContent = "[RACE] 左转偏置30";break;
 		case 8: logContent = "[RACE] 左转偏置60";break;
 		case 9: logContent = "[RACE] 右转偏置30";break;
+		case 10: logContent = "[RACE] 右转偏置60 ";break;
+		case 11: logContent = "[RACE] 掉头";break;
+		case 12: logContent = "[RACE] 高度0.6";break;
+		case 13: logContent = "[RACE] 向敌方防线飞行";break;
+		case 14: logContent = "[RACE] 向前飞行";break;
 		default: break;
-		}
-	} else {
-		switch(sin) {
-		case 0: logContent = "[RACE] 右转偏置60 ";break;
-		case 1: logContent = "[RACE] 掉头";break;
-		case 2: logContent = "[RACE] 高度0.6";break;
-		case 3: logContent = "[RACE] 向敌方防线飞行";break;
-		case 4: logContent = "[RACE] 向前飞行";break;
-		default: break;
-		}
 	}
 	strcpy(mLog.EventDes, logContent);
 	logEvent(mLog);

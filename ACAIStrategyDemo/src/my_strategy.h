@@ -6,7 +6,6 @@
 #include <set>
 #include "strategy_interface.h"
 #include "strategy_interface.h"
-#include "file_watcher.h"
 using namespace std;
 
 extern unsigned int g_flight_state;	//飞机存活状态
@@ -21,13 +20,6 @@ struct TriSolveResult {
 	double angle;
 	double length;
 };
-
-/// \struct 指令输入
-struct Cmd {
-	int fin;
-	int sin;
-};
-
 
 /// \struct 訓練參數
 struct TrainConfig {
@@ -169,15 +161,13 @@ public:
 	/// \brief 机动动作集调用
     /// \details 处理动作读取
     /// \param[in] fin 动作类型索引 sin 动作索引
-	void maneuver_i(int fin,int sin);	
+	void maneuver_i(int act);	
 
 	///---------------------------------------
 	/// \brief 机动动作读取和日志输出
     /// \details 处理动作读取
     /// \param[in] fin 动作类型索引 sin 动作索引
-	void write_maneuver(int fin,int sin);	
-
-	bool judge(double dis, bool option);
+	void write_maneuver(int act);
 
 private:
     /// \brief 初始化数据
@@ -224,30 +214,11 @@ private:
 	void DoTacWpnShoot();
 
 	///---------------------------------------
-	/// \brief 专家模式动作
-	void readActionByPro(int fin, int sin);
-
-	///---------------------------------------
 	/// \brief 输出状态
-	void PrintState(double reward);
-	/// \brief 输出状态
-	void PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, double reward);
-
-	/// \brief 读取动作
-	bool readAction();
+	int PrintStatus(ACAI::ACRdrTarget::RdrTgtInfo nearestTgt);
 	
 	/// \brief 设定飞行状态
 	void SetFlightState(unsigned int flightID);
-	/// \brief 计算距离优势
-	double CalDisAdv();
-	/// \brief 计算高度优势
-	double CalAltAdv();
-	/// \brief 计算角度优势
-	double CalAngAdv();
-	/// \brief 计算和敌方阵营距离优势
-	double CalWinAdv();
-	/// \brief 计算回报
-	double OutputReward();
 
 private:
     ACAI::PKConfig mPKConfig;               ///< 比赛配置信息 \sa ACAI::PKConfig
@@ -266,7 +237,7 @@ private:
     ACAI::COMSLInGuide mCOMSLInGuide;       ///< 编队成员制导武器信息 \sa ACAI::COMSLInGuide
 	ACAI::InTeamDataBag mCOTeamDataBag;     ///< 编队成员编队内部数据包 \sa ACAI::InTeamDataBag
 	ACAI::EventLog mLog;
-	Cmd mCmd;
+	int mCmd;
 	double HeightEdge;
 	double LonEdge;
 	double LatEdge;
