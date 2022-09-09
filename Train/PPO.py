@@ -1,4 +1,5 @@
 import time
+import threading
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
@@ -6,11 +7,15 @@ from keras import layers
 import scipy.signal
 from watchdog.observers import Observer
 
-import Environment
 from Environment import Env, WATCH_PATH
 from Environment import FileMonitorHandler
 import global_var
 
+# 文件路径
+STATE_1_FILE = r'./Data/Lead/state1.csv'
+ACTION_1_FILE = r'./Data/Lead//action1.csv'
+STATE_2_FILE = r'./Data/Wing/state2.csv'
+ACTION_2_FILE = r'./Data/Wing/action2.csv'
 
 """
 训练参数
@@ -133,7 +138,7 @@ def log_probabilities(logits, a):
 
 # 使用actor采样行动
 @tf.function
-def sample_action(observation):
+def sample_action(observation, actor):
     logits = actor(observation)
     action = tf.squeeze(tf.random.categorical(logits, 1), axis=1)
     return logits, action
@@ -141,7 +146,7 @@ def sample_action(observation):
 
 # 目标函数 最大化PPO-Clip
 @tf.function
-def train_policy(observation_buffer, action_buffer, log_probability_buffer, advantage_buffer):
+def train_policy(observation_buffer, action_buffer, log_probability_buffer, advantage_buffer, actor):
 
     with tf.GradientTape() as tape:
         ratio = tf.exp(
@@ -159,7 +164,6 @@ def train_policy(observation_buffer, action_buffer, log_probability_buffer, adva
         )
     policy_grads = tape.gradient(policy_loss, actor.trainable_variables)
     policy_optimizer.apply_gradients(zip(policy_grads, actor.trainable_variables))
-    # print("policy_function_loss: " + policy_loss)
 
     kl = tf.reduce_mean(
         log_probability_buffer
@@ -171,12 +175,85 @@ def train_policy(observation_buffer, action_buffer, log_probability_buffer, adva
 
 # 使用均方误差训练值函数
 @tf.function
-def train_value_function(observation_buffer, return_buffer):
+def train_value_function(observation_buffer, return_buffer, critic):
     with tf.GradientTape() as tape:
         value_loss = tf.reduce_mean((return_buffer - critic(observation_buffer)) ** 2)
     value_grads = tape.gradient(value_loss, critic.trainable_variables)
     value_optimizer.apply_gradients(zip(value_grads, critic.trainable_variables))
-    # print("value function loss: " + value_loss)
+
+
+def strategy(role: str, env: Env, actor, critic, buffer):
+    observation = env.reset()
+    print("[SYSTEM] 初始化完成")
+
+    # 初始化每个epoch的return值、长度和剧集数量之和
+    sum_return = 0
+    sum_length = 0
+    num_episodes = 0
+
+    # 步进迭代
+    for t in range(steps_per_epoch):
+
+        # 获取logits action 并在环境中更新一步
+        observation = observation.reshape(1, -1)
+        logits, action = sample_action(observation)
+        observation_new, reward, done, _ = env.step(action[0].numpy())
+        global_var.set_value("episode_return", global_var.get_value("episode_return") + reward)
+        global_var.set_value("episode_length", global_var.get_value("episode_length") + 1)
+
+        # 获取action的对数几率和当前状态的value
+        value_t = critic(observation)
+        log_probability_t = log_probabilities(logits, action)
+
+        # 存储 observation, action, reward, value_t, logp_pi_t
+        buffer.store(observation, action, reward, value_t, log_probability_t)
+
+        # 获取新的状态
+        observation = observation_new
+
+        # 到达设定边界时终止采样轨迹
+        terminal = global_var.get_value('done')
+        if terminal or (t == steps_per_epoch - 1):
+            last_value = 0 if terminal else critic(observation.reshape(1, -1))
+            buffer.finish_trajectory(last_value)
+            sum_return += global_var.get_value("episode_return")
+            sum_length += global_var.get_value("episode_length")
+            num_episodes += 1
+            global_var.set_value("episode_return", 0)
+            global_var.set_value("episode_length", 0)
+            break
+
+    # 从缓存池中获取数据
+    (
+        observation_buffer,
+        action_buffer,
+        advantage_buffer,
+        return_buffer,
+        log_probability_buffer,
+    ) = buffer.get()
+
+    # 更新策略，根据KL停止更新
+    for _ in range(train_policy_iterations):
+        kl = train_policy(observation_buffer, action_buffer, log_probability_buffer, advantage_buffer, actor)
+        if kl > 1.5 * target_kl:
+            break
+
+    # 更新value函数
+    for _ in range(train_value_iterations):
+        train_value_function(observation_buffer, return_buffer, critic)
+
+    # 保存训练模型
+    if role == "lead":
+        actor.save('actor_lead.h5')
+        critic.save('critic_lead.h5')
+    elif role == "wing":
+        actor.save('actor_wing.h5')
+        critic.save('critic_wing.h5')
+
+    # 输出每个epoch的平均return和平均长度
+    print(
+        f"[TRAIN] Epoch: {epoch + 1}. Mean Return: {sum_return / num_episodes}. Mean Length: {sum_length / num_episodes}"
+    )
 
 
 if __name__ == "__main__":
@@ -188,34 +265,52 @@ if __name__ == "__main__":
     # 初始化全局变量
     global_var._init()
     global_var.set_value('done', False)
-    global_var.set_value('state_signal', False)
+    global_var.set_value('state_signal_1', False)
+    global_var.set_value('state_signal_2', False)
     global_var.set_value('race_state', 'wait')
     global_var.set_value('game_times', 0)
+    # 初始化状态(state) 剧集返回值 剧集长度
+    global_var.set_value("episode_return", 0)
+    global_var.set_value("episode_length", 0)
 
     # 初始化环境 获取状态空间(state)的维度和动作(action)数量
-    env = Env()
-    observation_dimensions = env.observation_space.shape
-    num_actions = env.action_space.n - 1
+    env_lead = Env(state_file=STATE_1_FILE, action_file=ACTION_1_FILE, role="lead")
+    env_wing = Env(state_file=STATE_2_FILE, action_file=ACTION_2_FILE, role="wing")
+    observation_dimensions = env_lead.observation_space.shape
+    num_actions = env_wing.action_space.n - 1
 
     # 初始化缓冲池
-    buffer = Buffer(observation_dimensions, steps_per_epoch)
+    buffer_lead = Buffer(observation_dimensions, steps_per_epoch)
+    buffer_wing = Buffer(observation_dimensions, steps_per_epoch)
 
     # 初始化actor和critic的网络模型
     observation_input = keras.Input(shape=(observation_dimensions,), dtype=tf.float32)
     logits = mlp(observation_input, list(hidden_sizes) + [num_actions], tf.tanh, None)
-    actor = keras.Model(inputs=observation_input, outputs=logits)
+    actor_lead = keras.Model(inputs=observation_input, outputs=logits)
+    actor_wing = keras.Model(inputs=observation_input, outputs=logits)
     value = tf.squeeze(mlp(observation_input, list(hidden_sizes) + [1], tf.tanh, None), axis=1)
-    critic = keras.Model(inputs=observation_input, outputs=value)
+    critic_lead = keras.Model(inputs=observation_input, outputs=value)
+    critic_wing = keras.Model(inputs=observation_input, outputs=value)
 
     try:
-        actor_model = keras.models.load_model('actor.h5', compile=False)
-        critic_model = keras.models.load_model('critic.h5', compile=False)
+        actor_lead_model = keras.models.load_model('actor_lead.h5', compile=False)
+        critic_lead_model = keras.models.load_model('critic_lead.h5', compile=False)
     except IOError:
-        print("[SYSTEM] 模型未找到，将在本次训练中重新生成模型")
+        print("[SYSTEM] lead模型未找到，将在本次训练中重新生成模型")
     else:
-        actor = actor_model
-        critic = critic_model
-        print("[SYSTEM] 成功加载模型")
+        actor_lead = actor_lead_model
+        critic_lead = critic_lead_model
+        print("[SYSTEM] 成功加载lead模型")
+
+    try:
+        actor_wing_model = keras.models.load_model('actor_wing.h5', compile=False)
+        critic_wing_model = keras.models.load_model('critic_wing.h5', compile=False)
+    except IOError:
+        print("[SYSTEM] wing模型未找到，将在本次训练中重新生成模型")
+    else:
+        actor_wing = actor_wing_model
+        critic_wing = critic_wing_model
+        print("[SYSTEM] 成功加载wing模型")
 
     # 初始化policy和value的优化器
     policy_optimizer = keras.optimizers.Adam(learning_rate=policy_learning_rate)
@@ -227,8 +322,6 @@ if __name__ == "__main__":
     observer.schedule(event_handler, path=WATCH_PATH, recursive=True)  # recursive递归的
     observer.start()
 
-    # 初始化状态(state) 剧集返回值 剧集长度
-    episode_return, episode_length = 0, 0
     """
     训练
     """
@@ -238,71 +331,13 @@ if __name__ == "__main__":
         while global_var.get_value('done'):
             time.sleep(0.1)
 
-        observation = env.reset()
-        print("[SYSTEM] 初始化完成")
-
-        # 初始化每个epoch的return值、长度和剧集数量之和
-        sum_return = 0
-        sum_length = 0
-        num_episodes = 0
-
-        # 步进迭代
-        for t in range(steps_per_epoch):
-
-            # 获取logits action 并在环境中更新一步
-            observation = observation.reshape(1, -1)
-            logits, action = sample_action(observation)
-            observation_new, reward, done, _ = env.step(action[0].numpy())
-            episode_return += reward
-            episode_length += 1
-
-            # 获取action的对数几率和当前状态的value
-            value_t = critic(observation)
-            log_probability_t = log_probabilities(logits, action)
-
-            # 存储 observation, action, reward, value_t, logp_pi_t
-            buffer.store(observation, action, reward, value_t, log_probability_t)
-
-            # 获取新的状态
-            observation = observation_new
-
-            # 到达设定边界时终止采样轨迹
-            terminal = global_var.get_value('done')
-            if terminal or (t == steps_per_epoch - 1):
-                last_value = 0 if terminal else critic(observation.reshape(1, -1))
-                buffer.finish_trajectory(last_value)
-                sum_return += episode_return
-                sum_length += episode_length
-                num_episodes += 1
-                episode_return, episode_length = 0, 0
-                break
-
-        # 从缓存池中获取数据
-        (
-            observation_buffer,
-            action_buffer,
-            advantage_buffer,
-            return_buffer,
-            log_probability_buffer,
-        ) = buffer.get()
-
-        # 更新策略，根据KL停止更新
-        for _ in range(train_policy_iterations):
-            kl = train_policy(observation_buffer, action_buffer, log_probability_buffer, advantage_buffer)
-            if kl > 1.5 * target_kl:
-                break
-
-        # 更新value函数
-        for _ in range(train_value_iterations):
-            train_value_function(observation_buffer, return_buffer)
-
-        # 保存训练模型
-        actor.save('actor.h5')
-        critic.save('critic.h5')
-
-        # 输出每个epoch的平均return和平均长度
-        print(
-            f"[TRAIN] Epoch: {epoch + 1}. Mean Return: {sum_return / num_episodes}. Mean Length: {sum_length / num_episodes}"
-        )
+        lead_thread = threading.Thread(target=strategy, args=("lead", env_lead, actor_lead, critic_lead, buffer_lead))
+        wing_thread = threading.Thread(target=strategy, args=("wing", env_wing, actor_wing, critic_wing, buffer_wing))
+        lead_thread.setDaemon(True)
+        wing_thread.setDaemon(True)
+        lead_thread.start()
+        wing_thread.start()
+        lead_thread.join()
+        wing_thread.join()
 
     observer.join()

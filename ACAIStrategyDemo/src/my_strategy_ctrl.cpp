@@ -3,10 +3,14 @@
 #include <iostream>
 using namespace std;
 
-#define LEAD_STATE "state1.csv"
-#define WING_STATE "state2.csv"
-#define LEAD_ACTION "action1.csv"
-#define WING_ACTION "action2.csv"
+#define LEAD_STATE "..\\Assist\\Data\\Lead\\state1.csv"
+#define WING_STATE "..\\Assist\\Data\\Wing\\state2.csv"
+#define LEAD_ACTION "..\\Assist\\Data\\Lead\\action1.csv"
+#define WING_ACTION "..\\Assist\\Data\\Wing\\action2.csv"
+#define START "..\\Assist\\Data\\start"
+#define END "..\\Assist\\Data\\end"
+#define FIGHT "..\\Assist\\Data\\fight"
+#define OUTFT "..\\Assist\\Data\\outft"
 #define MAX_DIS 160000
 #define POW2(x) (x) * (x)
 
@@ -36,23 +40,20 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 	g_fight_init = false;
 	tgt_num = GetTgtSum();
 
-	initData(1);
-
-	remove("start");
-	remove("end");
-	remove("fight");
-	remove("outft");
-	FILE *tmp_1 = fopen("start", "w");
-	fclose(tmp_1);
-	FILE *tmp_2 = fopen("outft", "w");
-	fclose(tmp_2);
-
-	remove(LEAD_STATE);
-	remove(WING_STATE);
-	remove(LEAD_ACTION);
-	remove(WING_ACTION);
+	initData(2);
 
 	if (flightRole == 1) {
+		remove(START);
+		remove(END);
+		remove(FIGHT);
+		remove(OUTFT);
+		FILE *tmp_1 = fopen(START, "w");
+		fclose(tmp_1);
+		FILE *tmp_2 = fopen(OUTFT, "w");
+		fclose(tmp_2);
+
+		remove(LEAD_STATE);
+		remove(LEAD_ACTION);
 		FILE *tmp = fopen(LEAD_STATE, "w"); // 清空文件内容
 		fprintf(tmp, StateTitle);			// 文件表头
 		fclose(tmp);
@@ -60,6 +61,8 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 		fprintf(tmp, ActionTitle);
 		fclose(tmp);
 	} else {
+		remove(WING_STATE);
+		remove(WING_ACTION);
 		FILE *tmp = fopen(WING_STATE, "w"); // 清空文件内容
 		fprintf(tmp, StateTitle);			// 文件表头
 		fclose(tmp);
@@ -73,7 +76,7 @@ void MyStrategy::onPKStart(const ACAI::PKConfig &pkConfig)
 void MyStrategy::onPKEnd()
 {
 	double r = OutputReward();
-	if(judge(5010, true) || t_fallen_num >= train_config.tgt_num)
+	if(judge(5001, true) || t_fallen_num >= train_config.tgt_num)
 		r += train_config.win;
 	else
 		r -= train_config.win;
@@ -83,12 +86,14 @@ void MyStrategy::onPKEnd()
 	g_fight_init = false;
 	initData(1);
 
-	remove("start");
-	remove("end");
-	remove("fight");
-	remove("outft");
-	FILE *tmp = fopen("end", "w"); // 标志对战结束
-	fclose(tmp);
+	if (flightRole == 1) {
+		remove(START);
+		remove(END);
+		remove(FIGHT);
+		remove(OUTFT);
+		FILE *tmp_1 = fopen(END, "w");
+		fclose(tmp_1);
+	}
 }
 
 void MyStrategy::onPKOut(unsigned int flightID)
@@ -106,11 +111,6 @@ void MyStrategy::timeSlice20()
 
 }
 
-bool inRange(double angle, double range) {
-	return (angle <= range && angle >= -range) ||
-		(PI - angle <= range && PI - angle >= -range);
-}
-
 /// \brief 40ms线程
 void MyStrategy::timeSlice40()
 {
@@ -118,12 +118,14 @@ void MyStrategy::timeSlice40()
 	if (g_fight_init == false) {
 		write_maneuver(1, 3);
 		if (tgt_num > 0) {
-			// 第一次进入作战状态的初始化
-			g_fight_init = true;
-			FILE *tmp = fopen("fight", "w"); // 标志进入作战状态
-			fclose(tmp);
-			remove("outft");
 			PrintState(OutputReward());
+			g_fight_init = true;
+			if (flightRole == 1) {
+				// 第一次进入作战状态的初始化
+				FILE *tmp = fopen(FIGHT, "w"); // 标志进入作战状态
+				fclose(tmp);
+				remove(OUTFT);
+			}
 		}
 	}
 
@@ -344,6 +346,13 @@ inline void MyStrategy::PrintState(double reward) {
 	else PrintStatus(WING_STATE, GetNearestTgt(), reward);
 }
 
+double cal_log(double data) {
+	if (data < 1)
+		return 0;
+	else
+		return log(data);
+}
+
 void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInfo nearestTgt, double reward) {
 	double t_slant = nearestTgt.slantRange;
 	if (t_slant > 160000)
@@ -373,24 +382,24 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 	FILE *fp = fopen(filename, "a");
 	fprintf(fp, "[%d], %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %d, %d, %d, %d, %d, %d, %lf, %d, %lf\n",
 		mACFlightStatus.timeCounter,						// [时标]
-		t_slant,											// 目标距离
-		mACFlightStatus.alt - nearestTgt.alt,				// 目标高度差
+		cal_log(t_slant),										// 目标距离对数
+		(mACFlightStatus.alt - nearestTgt.alt)/100,			// 目标高度差
 		t_ang,												// 目标 地理系 方位角
-		nearestTgt.sbsSpeed,								// 目标速度(m/s)
+		nearestTgt.sbsSpeed / 100,							// 目标速度(100m/s)
 		mCOFlightStatus.flightMemCnt ?
-		mCOFlightStatus.memFlightStatus[0].groundSpeed :	// 友机速度(m/s)
+		mCOFlightStatus.memFlightStatus[0].groundSpeed / 100 :	// 友机速度(100m/s)
 		0,
-		mCOFlightStatus.flightMemCnt ?
+		cal_log(mCOFlightStatus.flightMemCnt ?
 		sqrt( POW2(mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt) +
 		POW2((mACFlightStatus.lon - mCOFlightStatus.memFlightStatus[0].lon) * dis2Lons) +
 		POW2((mACFlightStatus.lat - mCOFlightStatus.memFlightStatus[0].lat) * dis2Lats) ) :
-		MAX_DIS,											// 友机距离
-		mCOFlightStatus.flightMemCnt ?
+		MAX_DIS),											// 友机距离对数
+		(mCOFlightStatus.flightMemCnt ?
 		mACFlightStatus.alt - mCOFlightStatus.memFlightStatus[0].alt :
-		MAX_DIS,											// 友机高度差
+		12000)/100,											// 友机高度差
 		getTdAngle(mACFlightStatus.velNWU, mCOFlightStatus.memFlightStatus[0].velNWU),
 															// 友机速度矢量夹角
-		mACFlightStatus.groundSpeed,						// 本机速度
+		mACFlightStatus.groundSpeed / 100,					// 本机速度(100m/s)
 		getTdAngle(mACFlightStatus.velNWU, nearestTgt.velNWU),
 															// 敌机速度矢量夹角
 		mACMslWarning.mslCnt > 0,							// 是否被导弹锁定
@@ -399,7 +408,7 @@ void MyStrategy::PrintStatus(const char * filename, ACAI::ACRdrTarget::RdrTgtInf
 		GetTgtSum(),										// 扫描到的敌机数量
 		mACMslWarning.mslCnt,								// 锁定自己的导弹数量
 		mACMSLInGuide.mslCnt + nCoMslCnt,					// 场上我方导弹数量
-		tDis,												// 與終點距離
+		log(tDis),											// 與終點距離对数
 		train_config.tgt_num - t_fallen_num,				// 剩餘敵機數量
 		reward
 		);
@@ -532,7 +541,7 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 				tgtInfoTemp0 = mACRdrTarget.tgtInfos[0];
 			else
 				tgtInfoTemp1 = mACRdrTarget.tgtInfos[0];
-			if ((tgtInfoTemp0.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[0].slantRange) < (tgtInfoTemp1.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[1].slantRange))
+			if (mCORdrTarget.memRdrTarget[0].tgtInfos[0].slantRange < mCORdrTarget.memRdrTarget[0].tgtInfos[1].slantRange)
 				return tgtInfoTemp0;
 			else
 				return tgtInfoTemp1;
@@ -558,7 +567,7 @@ ACAI::ACRdrTarget::RdrTgtInfo MyStrategy::GetNearestTgt() {
 					}
 				}
 			}
-			if ((tgtInfoTemp0.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[0].slantRange) < (tgtInfoTemp1.slantRange + mCORdrTarget.memRdrTarget[0].tgtInfos[1].slantRange))
+			if (mCORdrTarget.memRdrTarget[0].tgtInfos[0].slantRange < mCORdrTarget.memRdrTarget[0].tgtInfos[1].slantRange)
 				return tgtInfoTemp0;
 			else
 				return tgtInfoTemp1;
@@ -604,7 +613,7 @@ TriSolveResult MyStrategy::SolveTriangle(ACAI::ACFlightStatus mACFlightStatus, A
 
 double MyStrategy::CalDisAdv() {
 	double dis = SolveTriangle(mACFlightStatus, GetNearestTgt()).length;
-	double maxDis = 2000;
+	double maxDis = 5000;
 	if (mACFCCStatus.tgtCnt != 0)
 		maxDis = mACFCCStatus.envInfos[0].FoeRtr;
 	if (dis <= maxDis)

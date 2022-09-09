@@ -12,21 +12,21 @@ import tensorflow as tf
 # 状态维度和动作集
 STATE_DIM = 16
 ACTION_LIST = {
-    0: 'DoTacPonitAtk',
+    0: 'DoTacCir',
     1: 'DoTacToTar',
-    2: 'DoTacAlt0.6',
-    3: 'DoTacAlt0.5',
-    4: 'DoTacAlt0.4',
-    5: 'DoTacAlt0.3',
-    8: 'DoTacAlt0.2',
-    9: 'DoTacAlt0.1',
-    10: 'DoTurnLeft60',
-    11: 'DoTurnRight30',
-    12: 'DoTurnRight60',
-    13: 'DoTacHeadEvade',
-    14: 'DoTacCir',
-    15: 'DoTurnFor',
-    16: 'DoTacWpnShoot'
+    2: 'DoTacAlt0.5',
+    3: 'DoTacAlt0.4',
+    4: 'DoTacAlt0.3',
+    5: 'DoTacAlt0.2',
+    6: 'DoTacStaHov',
+    7: 'DoTurnLeft30',
+    8: 'DoTurnLeft60',
+    9: 'DoTurnRight30',
+    10: 'DoTurnRight60',
+    11: 'DoTacHeadEvade',
+    12: 'DoTacAlt0.6',
+    13: 'DoTacPointAtk',
+    14: 'DoTurnFor'
 }
 
 # 文件路径
@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     # 初始化actor模型
     try:
-        actor = load_model('actor.h5')
+        actor = load_model('1/actor.h5')
     except IOError:
         print("[WARNING] 模型未找到")
     else:

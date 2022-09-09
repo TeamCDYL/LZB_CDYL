@@ -117,15 +117,14 @@ void MyStrategy::DoTacToTar()
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号
 		outputData.speedCtrlCmd = true;      ///< 速度保持指令
 		outputData.desireSpeed = 1000;///< 期望航路速度(m/s)
+		outputData.altCtrlCmd = true;
 		if (GetNearestTgt().tgtID != 0) {
 			outputData.headCtrlCmd = true;
 			outputData.desireHead = GetNearestTgt().azGeo;
-			outputData.altCtrlCmd = true;
-			outputData.desireAlt = GetNearestTgt().alt - 1800;
+			outputData.desireAlt = GetNearestTgt().alt - 1500;
 		}
 		else {
 			outputData.navCtrlCmd	= true;			///< 航路飞行指令
-			outputData.altCtrlCmd = true;
 			if( ACAI::V_FLIGHT_TEAM_RED == mACFlightStatus.flightTeam )
 			{
 				outputData.desireNavLon	= mPKConfig.RedMissionLon;    ///< 期望航路经度(rad)
@@ -153,7 +152,7 @@ void MyStrategy::DoTacAlt(double rate)
 		startCnt = (int)mACFlightStatus.timeCounter;
 		action_finished = false;
 	}
-	if ((int)mACFlightStatus.timeCounter - startCnt < (int)fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 1200) {
+	if ((int)mACFlightStatus.timeCounter - startCnt < (int)fabs(mPKConfig.MaxFlyHeight * rate - mACFlightStatus.alt) * 1000) {
 		ACAI::FlyControlCmd outputData;
 		memset(&outputData, 0, sizeof(outputData));
 		outputData.executePlaneID = mACFlightStatus.flightID; ///< 目的飞机编号

@@ -1,8 +1,8 @@
 #include "my_strategy.h"
 #include "memory.h"
 
-#define MY_STRATEGT_VERSION 0x020002
-#define MY_STRATEGT_VERSION_STR "2.00.002"
+#define MY_STRATEGT_VERSION 0x010001
+#define MY_STRATEGT_VERSION_STR "1.00.001"
 
 CStrategy* CreateStrategyInstance()
 {
@@ -17,12 +17,12 @@ MyStrategy::MyStrategy()
 
 unsigned int MyStrategy::version() const { return MY_STRATEGT_VERSION; }
 const char* MyStrategy::name() const { return "Your name"; }
-const char* MyStrategy::slogan() const { return "Your slogan!"; }
-const char* MyStrategy::info() const { return "'Your info."; }
-const char* MyStrategy::organization() const { return "Your organization"; }
+const char* MyStrategy::slogan() const { return "Rush!"; }
+const char* MyStrategy::info() const { return "DRL && ES"; }
+const char* MyStrategy::organization() const { return "CDYL"; }
 const char* MyStrategy::author() const { return "Author"; }
 const char* MyStrategy::teamMembers() const {
-    return " teamMembers：Zhang San, Li Si";
+    return " teamMembers：LXY, LYF, LYY, WYH";
 }
 
 void MyStrategy::initData(int role)
@@ -65,10 +65,10 @@ void MyStrategy::initData(int role)
 	train_config.out_warning = 18;	// 逃脫導彈鎖定
 	train_config.get_target = 10;	// 獲取敵方視野
 	train_config.lost_wpn = 30;
-	train_config.dis_adv = 5;		// 距離優勢
-	train_config.alt_adv = 5;		// 高度優勢
-	train_config.ang_adv = 5;		// 角度優勢
-	train_config.win_dav = 5;		// 距終點距離
+	train_config.dis_adv = 3;		// 距離優勢
+	train_config.alt_adv = 3;		// 高度優勢
+	train_config.ang_adv = 3;		// 角度優勢
+	train_config.win_dav = 4;		// 距終點距離
 	train_config.tgt_num = 2;
 
 	m_last_shoot_time = mACFlightStatus.timeCounter;
